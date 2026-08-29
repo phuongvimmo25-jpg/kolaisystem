@@ -6,6 +6,13 @@ import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
 
+/**
+ * Các trang xem được khi CHƯA đăng nhập.
+ * /privacy và /terms bắt buộc phải công khai — Google yêu cầu truy cập được
+ * không cần đăng nhập khi duyệt màn hình đồng ý OAuth.
+ */
+const PUBLIC_PATHS = ["/login", "/privacy", "/terms"];
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
@@ -29,12 +36,12 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1" },
       { name: "theme-color", content: "#0A0A0F" },
-      { title: "KOL AI SYSTEM — Hệ thống huấn luyện dòng tiền 30 ngày" },
+      { title: "KOL AI SYSTEM — Hệ thống huấn luyện cấp tốc của những chiến thần" },
       { name: "description", content: "Nền tảng huấn luyện affiliate & KOL Việt Nam — gamified 30-day income growth challenge." },
-      { property: "og:title", content: "KOL AI SYSTEM — Hệ thống huấn luyện dòng tiền 30 ngày" },
+      { property: "og:title", content: "KOL AI SYSTEM — Hệ thống huấn luyện cấp tốc của những chiến thần" },
       { property: "og:description", content: "Nền tảng huấn luyện affiliate & KOL Việt Nam — gamified 30-day income growth challenge." },
       { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "KOL AI SYSTEM — Hệ thống huấn luyện dòng tiền 30 ngày" },
+      { name: "twitter:title", content: "KOL AI SYSTEM — Hệ thống huấn luyện cấp tốc của những chiến thần" },
       { name: "twitter:description", content: "Nền tảng huấn luyện affiliate & KOL Việt Nam — gamified 30-day income growth challenge." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/rTYkREBpHWbj1WybhkOymPoOS8P2/social-images/social-1776581361255-analyzed_video_task_object_replace_llm_f176c23fa01a4c959333cc295a6c0ddc_inline_image_0.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/rTYkREBpHWbj1WybhkOymPoOS8P2/social-images/social-1776581361255-analyzed_video_task_object_replace_llm_f176c23fa01a4c959333cc295a6c0ddc_inline_image_0.webp" },
@@ -82,15 +89,23 @@ function AppShell() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
 
+  const isPublic = PUBLIC_PATHS.includes(path);
+
   useEffect(() => {
     if (loading) return;
-    if (!user && path !== "/login") {
+    if (!user && !isPublic) {
       navigate({ to: "/login", replace: true });
     }
     if (user && path === "/login") {
       navigate({ to: "/", replace: true });
     }
-  }, [user, loading, path, navigate]);
+  }, [user, loading, path, isPublic, navigate]);
+
+  // Trang cong khai render ngay, khong cho xac thuc: Google can doc duoc
+  // /privacy va /terms ma khong chay JS cho session.
+  if (isPublic) {
+    return <Outlet />;
+  }
 
   if (loading) {
     return (
@@ -100,7 +115,7 @@ function AppShell() {
     );
   }
 
-  if (path === "/login" || !user) {
+  if (!user) {
     return <Outlet />;
   }
 

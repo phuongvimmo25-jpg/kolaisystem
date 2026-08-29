@@ -1,22 +1,15 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
-import heroImg from "@/assets/login-hero.png";
+import heroImg from "@/assets/login-hero.jpg";
 
 export function LoginPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signup");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -26,46 +19,29 @@ export function LoginPage() {
   const handleGoogle = async () => {
     setLoading(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin,
+          queryParams: { access_type: "offline", prompt: "select_account" },
+        },
       });
-      if (result.error) {
-        toast.error("Đăng nhập Google thất bại", { description: result.error.message });
+      if (error) {
+        // Provider bật nhưng chưa dán Client ID / Secret vào Supabase
+        const missingCreds = /missing oauth secret|unsupported provider/i.test(error.message);
+        toast.error("Đăng nhập Google thất bại", {
+          description: missingCreds
+            ? "Google chưa được cấu hình trong Supabase. Vào Authentication → Providers → Google và dán Client ID + Client Secret."
+            : error.message,
+        });
+        setLoading(false);
       }
+      // Thành công thì trình duyệt tự chuyển sang Google, không cần tắt loading.
     } catch (e) {
       toast.error("Lỗi đăng nhập Google");
       console.error(e);
+      setLoading(false);
     }
-    setLoading(false);
-  };
-
-  const handleEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin,
-            data: { full_name: name || email.split("@")[0] },
-          },
-        });
-        if (error) throw error;
-        toast.success("Đăng ký thành công!", { description: "Hãy đăng nhập để bắt đầu hành trình 30 ngày." });
-        setMode("signin");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast.success("Chào mừng trở lại!");
-        navigate({ to: "/" });
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Có lỗi xảy ra";
-      toast.error(mode === "signup" ? "Đăng ký thất bại" : "Đăng nhập thất bại", { description: msg });
-    }
-    setLoading(false);
   };
 
   return (
@@ -81,13 +57,13 @@ export function LoginPage() {
         <div className="relative hidden sm:block min-h-[280px] lg:min-h-[680px] overflow-hidden">
           <img
             src={heroImg}
-            alt="KOL AI System — Building the empire"
-            className="absolute inset-0 w-full h-full object-cover"
+            alt="KOL AI System — Hệ thống huấn luyện cấp tốc của những chiến thần"
+            className="absolute inset-0 w-full h-full object-cover object-center"
           />
-          {/* Glow & legibility overlays */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-background/60 lg:to-background/70" />
-          <div className="absolute inset-0 mix-blend-overlay opacity-40 bg-gradient-to-br from-primary/30 via-transparent to-orange-500/20" />
+          {/* Blend overlays — tuned for a light-background portrait */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-background/50" />
+          <div className="absolute inset-0 mix-blend-soft-light opacity-50 bg-gradient-to-br from-primary/40 via-transparent to-orange-500/25" />
 
           {/* Bottom caption */}
           <div className="absolute inset-x-0 bottom-0 p-6 lg:p-10">
@@ -108,7 +84,7 @@ export function LoginPage() {
           </div>
         </div>
 
-        {/* RIGHT — Auth form */}
+        {/* RIGHT — Auth (Google only) */}
         <div className="p-6 sm:p-8 lg:p-10 flex flex-col justify-center bg-card/60 backdrop-blur-2xl">
           <div className="text-center mb-6">
             <div className="inline-block relative mb-4">
@@ -119,7 +95,7 @@ export function LoginPage() {
               <span className="text-foreground">KOL AI </span>
               <span className="text-gradient-primary">SYSTEM</span>
             </h1>
-            <p className="text-xs md:text-sm font-medium text-foreground/80">Hệ thống huấn luyện dòng tiền 30 ngày</p>
+            <p className="text-xs md:text-sm font-medium text-foreground/80">Hệ thống huấn luyện cấp tốc của những chiến thần</p>
           </div>
 
           <Button
@@ -133,42 +109,26 @@ export function LoginPage() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
             </svg>
-            Đăng nhập bằng Google
+            {loading ? "Đang chuyển hướng..." : "Đăng nhập bằng Google"}
           </Button>
 
-          <div className="flex items-center gap-3 my-5">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-xs text-muted-foreground">hoặc dùng email</span>
-            <div className="h-px flex-1 bg-border" />
-          </div>
+          <p className="text-center mt-5 text-xs text-muted-foreground leading-relaxed">
+            Chỉ cần tài khoản Google — không cần mật khẩu, không cần đăng ký.
+            <br />
+            Lần đầu đăng nhập, hệ thống tự tạo hồ sơ cho bạn.
+          </p>
 
-          <form onSubmit={handleEmail} className="space-y-3">
-            {mode === "signup" && (
-              <div>
-                <Label htmlFor="name" className="text-xs">Tên hiển thị</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="VD: Minh Anh" className="mt-1 bg-background/50" />
-              </div>
-            )}
-            <div>
-              <Label htmlFor="email" className="text-xs">Email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ban@email.com" className="mt-1 bg-background/50" />
-            </div>
-            <div>
-              <Label htmlFor="password" className="text-xs">Mật khẩu</Label>
-              <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Tối thiểu 6 ký tự" className="mt-1 bg-background/50" />
-            </div>
-            <Button type="submit" disabled={loading} className="w-full bg-gradient-primary hover:opacity-90 rounded-xl h-11 font-semibold">
-              {loading ? "Đang xử lý..." : mode === "signup" ? "Tạo tài khoản — Bắt đầu hành trình" : "Đăng nhập"}
-            </Button>
-          </form>
-
-          <div className="text-center mt-4 text-xs text-muted-foreground">
-            {mode === "signin" ? (
-              <>Chưa có tài khoản? <button onClick={() => setMode("signup")} className="text-primary font-semibold hover:underline">Đăng ký ngay</button></>
-            ) : (
-              <>Đã có tài khoản? <button onClick={() => setMode("signin")} className="text-primary font-semibold hover:underline">Đăng nhập</button></>
-            )}
-          </div>
+          <p className="text-center mt-6 text-[11px] text-muted-foreground/80 leading-relaxed">
+            Khi đăng nhập, bạn đồng ý với{" "}
+            <Link to="/terms" className="text-primary/90 hover:text-primary hover:underline">
+              Điều khoản sử dụng
+            </Link>{" "}
+            và{" "}
+            <Link to="/privacy" className="text-primary/90 hover:text-primary hover:underline">
+              Chính sách bảo mật
+            </Link>
+            .
+          </p>
         </div>
       </div>
     </div>

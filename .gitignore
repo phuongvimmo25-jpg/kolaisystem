@@ -30,3 +30,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Bien moi truong - KHONG commit khoa vao git
+.env
+.env.*
+!.env.example
+
+# Vercel build output
+.vercel/
