@@ -1,15 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  GraduationCap,
-  FileText,
-  Trophy,
-  ShieldCheck,
-  Flame,
-  ArrowRight,
-  Lock,
-  Sparkles,
-} from "lucide-react";
+import { ShieldCheck, Flame, ArrowRight, Lock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
@@ -41,30 +32,6 @@ const BADGES: BadgeDef[] = [
   },
   { key: "podium", icon: "⭐", name: "Top 3", earned: (c) => c.rank >= 1 && c.rank <= 3 },
   { key: "all", icon: "👑", name: "Trọn vẹn", earned: (c) => c.total > 0 && c.subs >= c.total },
-];
-
-const LINKS = [
-  {
-    to: "/bai-giang" as const,
-    icon: GraduationCap,
-    title: "Bài giảng",
-    desc: "Xem video từng bước",
-    tone: "border-primary/30 from-primary/20 to-transparent",
-  },
-  {
-    to: "/bai-tap" as const,
-    icon: FileText,
-    title: "Nộp bài tập",
-    desc: "Dán link Google Docs",
-    tone: "border-gold/30 from-gold/20 to-transparent",
-  },
-  {
-    to: "/vinh-danh" as const,
-    icon: Trophy,
-    title: "Vinh danh",
-    desc: "Bảng xếp hạng khiên vàng",
-    tone: "border-orange-500/30 from-orange-500/20 to-transparent",
-  },
 ];
 
 export function HomePage() {
@@ -177,28 +144,7 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ══ 3. ĐI TIẾP ĐÂU ══ */}
-      <div className="grid gap-3 sm:grid-cols-3">
-        {LINKS.map((q) => (
-          <Link key={q.to} to={q.to} className="group">
-            <Card
-              className={
-                "h-full border bg-gradient-to-br p-4 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-xl " +
-                q.tone
-              }
-            >
-              <div className="flex items-center justify-between">
-                <q.icon className="h-6 w-6" />
-                <ArrowRight className="h-4 w-4 -translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-60" />
-              </div>
-              <div className="mt-3 text-[15px] font-bold">{q.title}</div>
-              <p className="mt-0.5 text-[13px] text-muted-foreground">{q.desc}</p>
-            </Card>
-          </Link>
-        ))}
-      </div>
-
-      {/* ══ 4. HUY HIỆU ══ */}
+      {/* ══ 3. HUY HIỆU ══ */}
       <section>
         <h2 className="eyebrow mb-2.5">Huy hiệu</h2>
         <div className="grid grid-cols-5 gap-2">
@@ -233,7 +179,7 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ══ 5. BÌA CHÂN TRANG ══ */}
+      {/* ══ 4. BÌA CHÂN TRANG ══ */}
       <footer className="hero-cover hero-cover--footer">
         <img src={homeHero} alt="KOL AI SYSTEM" className="hero-cover__img" loading="lazy" />
         <div className="hero-cover__veil" aria-hidden />

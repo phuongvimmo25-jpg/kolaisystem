@@ -99,10 +99,10 @@ export const PARTS: Part[] = [
       {
         key: "p1-b3",
         code: "1.3",
-        title: "Hướng dẫn cài ChatGPT · Tạo tài khoản · Tải Codex về máy",
+        title: "Setup cài đặt ChatGPT Codex — Cách dùng không tốn token",
         description:
-          "Làm theo từng bước: tạo tài khoản, cài đặt và chạy được Codex trên máy của bạn.",
-        youtubeId: "",
+          "Đăng ký tài khoản ChatGPT Plus, cài app Codex về máy, và cách dùng sao cho không đốt token.",
+        youtubeId: "Is-Z7yFm6qc",
         assignment:
           "Chụp màn hình chứng minh bạn đã cài xong và chạy được Codex trên máy. Ghi lại lỗi bạn gặp và cách khắc phục (nếu có).",
       },
