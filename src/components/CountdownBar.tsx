@@ -1,19 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Timer, CheckCircle2, Flag } from "lucide-react";
+import { Clock3, Check, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { currentDeadline, ALL_LESSONS, type DeadlineInfo } from "@/lib/lessons";
+import { currentDeadline, type DeadlineInfo } from "@/lib/lessons";
 
-interface Remaining {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-  totalMs: number;
-}
-
-function remainingUntil(deadline: Date, now: Date): Remaining {
+function remainingUntil(deadline: Date, now: Date) {
   const totalMs = Math.max(0, deadline.getTime() - now.getTime());
   const totalSec = Math.floor(totalMs / 1000);
   return {
@@ -27,22 +19,8 @@ function remainingUntil(deadline: Date, now: Date): Remaining {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** Ô số của đồng hồ đếm ngược. */
-function Unit({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="flex flex-col items-center">
-      <span className="font-mono text-sm font-black leading-none tabular-nums sm:text-base">
-        {pad(value)}
-      </span>
-      <span className="mt-0.5 text-[8px] uppercase tracking-wider opacity-70 sm:text-[9px]">
-        {label}
-      </span>
-    </div>
-  );
-}
-
 /**
- * Thanh đếm ngược hạn nộp bài — luôn hiện, bám giữa màn hình dưới thanh điều hướng.
+ * Đồng hồ đếm ngược hạn nộp bài — viên nhỏ, bám giữa màn hình.
  * Tự nhảy sang bài kế tiếp khi qua ngày.
  */
 export function CountdownBar() {
@@ -50,7 +28,6 @@ export function CountdownBar() {
   const [now, setNow] = useState(() => new Date());
   const [submitted, setSubmitted] = useState<Set<string>>(new Set());
 
-  // Nhịp đồng hồ 1 giây
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
@@ -58,10 +35,7 @@ export function CountdownBar() {
 
   const loadSubmissions = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("submissions")
-      .select("lesson_key")
-      .eq("user_id", user.id);
+    const { data } = await supabase.from("submissions").select("lesson_key").eq("user_id", user.id);
     setSubmitted(new Set((data ?? []).map((r) => r.lesson_key)));
   }, [user]);
 
@@ -69,7 +43,6 @@ export function CountdownBar() {
     loadSubmissions();
   }, [loadSubmissions]);
 
-  // Nộp bài ở tab khác cũng cập nhật được trạng thái ở đây
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -87,15 +60,12 @@ export function CountdownBar() {
 
   const info: DeadlineInfo | null = currentDeadline(now);
 
-  // Hết hạn toàn khoá
   if (!info) {
     return (
-      <Bar tone="done">
-        <Flag className="h-4 w-4 shrink-0" />
-        <span className="text-xs font-semibold sm:text-sm">
-          Đã hết hạn nộp toàn bộ {ALL_LESSONS.length} bài
-        </span>
-      </Bar>
+      <Pill tone="done">
+        <Flag className="h-3 w-3 shrink-0" />
+        <span>Đã hết hạn nộp bài</span>
+      </Pill>
     );
   }
 
@@ -103,56 +73,54 @@ export function CountdownBar() {
   const isSubmitted = submitted.has(info.lesson.key);
   const urgent = left.totalMs < 24 * 3600 * 1000;
 
+  const clock =
+    (left.days > 0 ? left.days + "n " : "") +
+    pad(left.hours) + ":" + pad(left.minutes) + ":" + pad(left.seconds);
+
   if (isSubmitted) {
     return (
-      <Bar tone="done">
-        <CheckCircle2 className="h-4 w-4 shrink-0" />
-        <span className="text-xs font-semibold sm:text-sm">
-          Đã nộp bài số {info.index + 1} — còn {left.days > 0 ? `${left.days} ngày ` : ""}
-          {pad(left.hours)}:{pad(left.minutes)}:{pad(left.seconds)} để sửa
-        </span>
-      </Bar>
+      <Pill tone="done">
+        <Check className="h-3 w-3 shrink-0" />
+        <span>Đã nộp bài {info.index + 1}</span>
+        <span className="opacity-40">·</span>
+        <span className="font-mono tabular-nums opacity-80">{clock}</span>
+      </Pill>
     );
   }
 
   return (
-    <Link to="/bai-tap" hash={info.lesson.key} className="block">
-      <Bar tone={urgent ? "urgent" : "normal"}>
-        <Timer className={`h-4 w-4 shrink-0 ${urgent ? "animate-pulse" : ""}`} />
-        <span className="truncate text-xs font-semibold sm:text-sm">
-          Hạn nộp <strong>bài số {info.index + 1}</strong>
-        </span>
-        <span className="mx-0.5 opacity-40">•</span>
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {left.days > 0 && <Unit value={left.days} label="ngày" />}
-          <Unit value={left.hours} label="giờ" />
-          <Unit value={left.minutes} label="phút" />
-          <Unit value={left.seconds} label="giây" />
-        </div>
-      </Bar>
+    <Link to="/bai-tap" hash={info.lesson.key}>
+      <Pill tone={urgent ? "urgent" : "normal"} interactive>
+        <Clock3 className="h-3 w-3 shrink-0" />
+        <span>Hạn bài {info.index + 1}</span>
+        <span className="opacity-40">·</span>
+        <span className="font-mono font-semibold tabular-nums">{clock}</span>
+      </Pill>
     </Link>
   );
 }
 
-function Bar({
+function Pill({
   tone,
+  interactive,
   children,
 }: {
   tone: "normal" | "urgent" | "done";
+  interactive?: boolean;
   children: React.ReactNode;
 }) {
   const styles = {
-    normal:
-      "border-primary/40 bg-primary/15 text-foreground shadow-[0_6px_24px_-8px_oklch(0.55_0.24_295/0.7)]",
-    urgent:
-      "border-red-500/50 bg-red-500/15 text-red-200 shadow-[0_6px_24px_-8px_rgba(239,68,68,0.7)]",
-    done: "border-emerald-500/40 bg-emerald-500/12 text-emerald-200",
+    normal: "border-border/70 bg-card/70 text-foreground/75",
+    urgent: "border-red-500/40 bg-red-500/10 text-red-300",
+    done: "border-emerald-500/30 bg-emerald-500/8 text-emerald-300/90",
   }[tone];
 
   return (
-    <div className="pointer-events-none sticky top-[57px] z-20 flex justify-center px-4 pt-3">
+    <div className="pointer-events-none sticky top-2 z-20 flex justify-center px-4">
       <div
-        className={`pointer-events-auto inline-flex max-w-full items-center gap-2 rounded-full border px-3.5 py-2 backdrop-blur-xl transition-colors sm:gap-3 sm:px-5 ${styles}`}
+        className={`pointer-events-auto inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] leading-none backdrop-blur-md transition-colors ${styles} ${
+          interactive ? "hover:border-primary/50 hover:text-foreground" : ""
+        }`}
       >
         {children}
       </div>
