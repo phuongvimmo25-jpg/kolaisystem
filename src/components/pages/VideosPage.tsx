@@ -10,6 +10,8 @@ import {
   ChevronRight,
   Circle,
   ClipboardList,
+  FileText,
+  CalendarClock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,6 +25,7 @@ import {
   ALL_LESSONS,
   POINTS_PER_VIDEO,
   POINTS_PER_SUBMISSION,
+  getLessonDeadline,
   type Lesson,
 } from "@/lib/lessons";
 
@@ -134,6 +137,7 @@ export function VideosPage() {
         {current && (
           <LessonView
             lesson={current}
+            index={ALL_LESSONS.findIndex((l) => l.key === current.key)}
             isWatched={watched.has(current.key)}
             isSubmitted={submitted.has(current.key)}
             busy={busy === current.key}
@@ -192,18 +196,21 @@ function RailItem({
 
 function LessonView({
   lesson,
+  index,
   isWatched,
   isSubmitted,
   busy,
   onToggle,
 }: {
   lesson: Lesson;
+  index: number;
   isWatched: boolean;
   isSubmitted: boolean;
   busy: boolean;
   onToggle: () => void;
 }) {
   const hasVideo = lesson.youtubeId.trim() !== "";
+  const deadline = getLessonDeadline(index);
 
   return (
     <div className="mx-auto max-w-[980px] space-y-5">
@@ -297,21 +304,68 @@ function LessonView({
           )}
         </div>
 
-        <p className="mt-3 text-[16px] font-medium leading-relaxed text-foreground">
-          {lesson.assignment}
-        </p>
+        {/* Mục tiêu */}
+        <div className="mt-3">
+          <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+            Mục tiêu
+          </div>
+          <p className="mt-1 text-[16px] font-semibold leading-relaxed text-foreground">
+            {lesson.assignment}
+          </p>
+        </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
+        {/* Bản nộp phải có gì */}
+        {lesson.deliverables && lesson.deliverables.length > 0 && (
+          <div className="mt-4">
+            <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+              Bản nộp phải có
+            </div>
+            <ul className="mt-2 space-y-1.5">
+              {lesson.deliverables.map((d) => (
+                <li key={d} className="flex gap-2 text-[15px] leading-relaxed text-foreground/90">
+                  <CheckCircle2 className="mt-[3px] h-4 w-4 shrink-0 text-gold" />
+                  <span>{d}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Cách nộp + hạn nộp */}
+        <div className="mt-4 grid gap-2 rounded-xl border border-border/60 bg-background/40 p-3 text-[13px] sm:grid-cols-2">
+          <div className="flex items-start gap-2">
+            <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">
+              Làm trên <b className="text-foreground/80">Google Docs</b>, mở quyền “Bất kỳ ai có
+              đường liên kết”, rồi dán link vào tab Nộp bài tập.
+            </span>
+          </div>
+          <div className="flex items-start gap-2">
+            <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">
+              Hạn nộp:{" "}
+              <b className="text-gold">
+                {deadline.toLocaleString("vi-VN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  timeZone: "Asia/Ho_Chi_Minh",
+                })}
+              </b>
+              {" · "}nộp được {POINTS_PER_SUBMISSION} điểm và 1 khiên vàng.
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-4">
           <Button asChild className="bg-gradient-gold text-gold-foreground hover:opacity-90">
             <Link to="/bai-tap" hash={lesson.key}>
               {isSubmitted ? "Sửa bài nộp" : "Nộp bài tập"}
               <ArrowRight className="ml-1.5 h-4 w-4" />
             </Link>
           </Button>
-          <span className="text-xs text-muted-foreground">
-            Làm trên Google Docs rồi dán link · nộp được {POINTS_PER_SUBMISSION} điểm và 1 khiên
-            vàng
-          </span>
         </div>
       </section>
     </div>

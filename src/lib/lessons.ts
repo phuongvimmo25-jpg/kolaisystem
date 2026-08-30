@@ -18,8 +18,10 @@ export interface Lesson {
   youtubeId: string;
   /** Thời lượng, để trống nếu chưa biết. */
   duration?: string;
-  /** Đề bài học viên phải làm và nộp qua Google Docs. */
+  /** Mục tiêu cần đạt sau bài học. */
   assignment: string;
+  /** Danh sách cụ thể phải có trong bản Google Docs nộp lên. */
+  deliverables?: string[];
 }
 
 export interface Part {
@@ -84,6 +86,12 @@ export const PARTS: Part[] = [
         youtubeId: "jYKzQePWbO8",
         assignment:
           "Hiểu được Skill là gì và nó hoạt động như thế nào với AI Agent.",
+        deliverables: [
+          "Định nghĩa Skill bằng lời của bạn, không chép lại nguyên văn trong video",
+          "Sơ đồ hoặc mô tả các bước một AI Agent gọi tới Skill",
+          "Phân biệt Skill với MCP và Sub-Agent — mỗi cái một câu",
+          "Một ví dụ Skill bạn muốn dùng cho công việc của mình, kèm lý do",
+        ],
       },
       {
         key: "p1-b2",
@@ -94,6 +102,11 @@ export const PARTS: Part[] = [
         youtubeId: "tCrqO_1YXTU",
         duration: "16 phút",
         assignment: "Tải được ChatGPT Codex về máy.",
+        deliverables: [
+          "Ảnh chụp màn hình Codex đã chạy được trên máy bạn",
+          "Ghi rõ bạn dùng ChatGPT bản nào và vì sao chọn bản đó",
+          "Liệt kê lỗi gặp trong lúc cài và cách bạn xử lý (nếu không gặp lỗi, ghi rõ là không)",
+        ],
       },
       {
         key: "p1-b3",
@@ -104,6 +117,12 @@ export const PARTS: Part[] = [
         youtubeId: "Is-Z7yFm6qc",
         assignment:
           "Làm quen được toàn bộ giao diện từ web tới app và có thể thao tác như một chuyên gia.",
+        deliverables: [
+          "Ảnh chụp màn hình bản web và bản app, chú thích các khu vực chính",
+          "Liệt kê ít nhất 5 thao tác bạn đã tự làm được",
+          "Nêu 3 mẹo giúp dùng ít token hơn mà bạn rút ra từ bài học",
+          "Một việc thật trong công việc của bạn đã thử làm bằng Codex, kèm kết quả",
+        ],
       },
     ],
   },
