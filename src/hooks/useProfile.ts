@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { todayVN } from "@/lib/missions";
+import { todayVN } from "@/lib/date";
 
 export interface Profile {
   id: string;
@@ -10,6 +10,8 @@ export interface Profile {
   day_number: number;
   streak: number;
   total_points: number;
+  submission_count: number;
+  watched_count: number;
   current_milestone: number;
   start_date: string;
   last_active_date: string | null;

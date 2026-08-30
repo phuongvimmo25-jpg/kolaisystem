@@ -9,23 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VinhDanhRouteImport } from './routes/vinh-danh'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as MissionsRouteImport } from './routes/missions'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as LeaderboardRouteImport } from './routes/leaderboard'
-import { Route as IncomeRouteImport } from './routes/income'
+import { Route as BaiTapRouteImport } from './routes/bai-tap'
 import { Route as IndexRouteImport } from './routes/index'
 
+const VinhDanhRoute = VinhDanhRouteImport.update({
+  id: '/vinh-danh',
+  path: '/vinh-danh',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -33,24 +31,14 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MissionsRoute = MissionsRouteImport.update({
-  id: '/missions',
-  path: '/missions',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LeaderboardRoute = LeaderboardRouteImport.update({
-  id: '/leaderboard',
-  path: '/leaderboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IncomeRoute = IncomeRouteImport.update({
-  id: '/income',
-  path: '/income',
+const BaiTapRoute = BaiTapRouteImport.update({
+  id: '/bai-tap',
+  path: '/bai-tap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -61,93 +49,67 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/income': typeof IncomeRoute
-  '/leaderboard': typeof LeaderboardRoute
+  '/bai-tap': typeof BaiTapRoute
   '/login': typeof LoginRoute
-  '/missions': typeof MissionsRoute
   '/privacy': typeof PrivacyRoute
-  '/profile': typeof ProfileRoute
   '/terms': typeof TermsRoute
+  '/vinh-danh': typeof VinhDanhRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/income': typeof IncomeRoute
-  '/leaderboard': typeof LeaderboardRoute
+  '/bai-tap': typeof BaiTapRoute
   '/login': typeof LoginRoute
-  '/missions': typeof MissionsRoute
   '/privacy': typeof PrivacyRoute
-  '/profile': typeof ProfileRoute
   '/terms': typeof TermsRoute
+  '/vinh-danh': typeof VinhDanhRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/income': typeof IncomeRoute
-  '/leaderboard': typeof LeaderboardRoute
+  '/bai-tap': typeof BaiTapRoute
   '/login': typeof LoginRoute
-  '/missions': typeof MissionsRoute
   '/privacy': typeof PrivacyRoute
-  '/profile': typeof ProfileRoute
   '/terms': typeof TermsRoute
+  '/vinh-danh': typeof VinhDanhRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/income'
-    | '/leaderboard'
-    | '/login'
-    | '/missions'
-    | '/privacy'
-    | '/profile'
-    | '/terms'
+  fullPaths: '/' | '/bai-tap' | '/login' | '/privacy' | '/terms' | '/vinh-danh'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/income'
-    | '/leaderboard'
-    | '/login'
-    | '/missions'
-    | '/privacy'
-    | '/profile'
-    | '/terms'
+  to: '/' | '/bai-tap' | '/login' | '/privacy' | '/terms' | '/vinh-danh'
   id:
     | '__root__'
     | '/'
-    | '/income'
-    | '/leaderboard'
+    | '/bai-tap'
     | '/login'
-    | '/missions'
     | '/privacy'
-    | '/profile'
     | '/terms'
+    | '/vinh-danh'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  IncomeRoute: typeof IncomeRoute
-  LeaderboardRoute: typeof LeaderboardRoute
+  BaiTapRoute: typeof BaiTapRoute
   LoginRoute: typeof LoginRoute
-  MissionsRoute: typeof MissionsRoute
   PrivacyRoute: typeof PrivacyRoute
-  ProfileRoute: typeof ProfileRoute
   TermsRoute: typeof TermsRoute
+  VinhDanhRoute: typeof VinhDanhRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/vinh-danh': {
+      id: '/vinh-danh'
+      path: '/vinh-danh'
+      fullPath: '/vinh-danh'
+      preLoaderRoute: typeof VinhDanhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -157,13 +119,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/missions': {
-      id: '/missions'
-      path: '/missions'
-      fullPath: '/missions'
-      preLoaderRoute: typeof MissionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -171,18 +126,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/leaderboard': {
-      id: '/leaderboard'
-      path: '/leaderboard'
-      fullPath: '/leaderboard'
-      preLoaderRoute: typeof LeaderboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/income': {
-      id: '/income'
-      path: '/income'
-      fullPath: '/income'
-      preLoaderRoute: typeof IncomeRouteImport
+    '/bai-tap': {
+      id: '/bai-tap'
+      path: '/bai-tap'
+      fullPath: '/bai-tap'
+      preLoaderRoute: typeof BaiTapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -197,13 +145,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  IncomeRoute: IncomeRoute,
-  LeaderboardRoute: LeaderboardRoute,
+  BaiTapRoute: BaiTapRoute,
   LoginRoute: LoginRoute,
-  MissionsRoute: MissionsRoute,
   PrivacyRoute: PrivacyRoute,
-  ProfileRoute: ProfileRoute,
   TermsRoute: TermsRoute,
+  VinhDanhRoute: VinhDanhRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

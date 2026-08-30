@@ -103,8 +103,10 @@ export type Database = {
           last_active_date: string | null
           start_date: string
           streak: number
+          submission_count: number
           total_points: number
           updated_at: string
+          watched_count: number
         }
         Insert: {
           avatar_url?: string | null
@@ -116,8 +118,10 @@ export type Database = {
           last_active_date?: string | null
           start_date?: string
           streak?: number
+          submission_count?: number
           total_points?: number
           updated_at?: string
+          watched_count?: number
         }
         Update: {
           avatar_url?: string | null
@@ -129,8 +133,10 @@ export type Database = {
           last_active_date?: string | null
           start_date?: string
           streak?: number
+          submission_count?: number
           total_points?: number
           updated_at?: string
+          watched_count?: number
         }
         Relationships: []
       }
@@ -151,6 +157,36 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      submissions: {
+        Row: {
+          created_at: string
+          doc_url: string
+          id: string
+          lesson_key: string
+          note: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          doc_url: string
+          id?: string
+          lesson_key: string
+          note?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          doc_url?: string
+          id?: string
+          lesson_key?: string
+          note?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
