@@ -18,7 +18,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/PageHeader";
-import { useVideoProgress, REQUIRED_WATCH_RATIO } from "@/hooks/useVideoProgress";
+import { useVideoProgress, REQUIRED_SECONDS } from "@/hooks/useVideoProgress";
 import { toast } from "sonner";
 import {
   DAYS,
@@ -231,8 +231,7 @@ function LessonView({
   const hasVideo = lesson.youtubeId.trim() !== "" && isOpen;
   const deadline = day ? getDayDeadline(day.day) : new Date();
 
-  const playerId = "yt-" + lesson.key;
-  const { ratio, enough } = useVideoProgress(playerId, hasVideo && !isWatched);
+  const { ratio, enough, remaining } = useVideoProgress(lesson.key, hasVideo && !isWatched);
   // Đã ghi nhận rồi thì không bắt xem lại
   const canComplete = isWatched || enough;
   const percentWatched = Math.round(ratio * 100);
@@ -244,12 +243,11 @@ function LessonView({
         <div className="relative aspect-video w-full">
           {hasVideo ? (
             <iframe
-              id={playerId}
               className="absolute inset-0 h-full w-full"
               src={
-                "https://www.youtube.com/embed/" +
+                "https://www.youtube-nocookie.com/embed/" +
                 lesson.youtubeId +
-                "?rel=0&modestbranding=1&enablejsapi=1"
+                "?rel=0&modestbranding=1"
               }
               title={lesson.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -322,7 +320,7 @@ function LessonView({
               ? "Sang bài " + nextLesson.code
               : canComplete
                 ? "Hoàn thành · Sang bài " + nextLesson.code
-                : `Xem tiếp — mới ${percentWatched}%`}
+                : `Còn ${remaining} giây nữa`}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         ) : (
@@ -337,7 +335,7 @@ function LessonView({
               ? "Đã học hết bài giảng"
               : canComplete
                 ? "Hoàn thành bài cuối"
-                : `Xem tiếp — mới ${percentWatched}%`}
+                : `Còn ${remaining} giây nữa`}
           </Button>
         )}
       </div>
@@ -348,13 +346,13 @@ function LessonView({
           <div className="h-1.5 overflow-hidden rounded-full bg-muted">
             <div
               className="h-full rounded-full bg-gradient-primary transition-[width] duration-500"
-              style={{ width: Math.min(100, percentWatched / REQUIRED_WATCH_RATIO) + "%" }}
+              style={{ width: percentWatched + "%" }}
             />
           </div>
           <p className="mt-1.5 text-xs text-muted-foreground">
             {canComplete
-              ? "Đã xem đủ — bấm Hoàn thành để nhận điểm"
-              : `Cần xem ít nhất ${Math.round(REQUIRED_WATCH_RATIO * 100)}% video mới hoàn thành được. Tua nhanh không được tính.`}
+              ? "Đã đủ thời gian — bấm Hoàn thành để nhận điểm"
+              : `Hãy xem video ít nhất ${REQUIRED_SECONDS} giây rồi mới hoàn thành được. Chuyển sang tab khác thì tạm dừng đếm.`}
           </p>
         </div>
       )}
