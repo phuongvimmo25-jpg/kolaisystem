@@ -102,6 +102,10 @@ export function ReviewError({ message, onRetry }: { message: string; onRetry?: (
           Chưa mở được bài — chưa được tính khiên
         </div>
         <p className="mt-0.5 text-[13px] leading-relaxed text-red-200/80">{message}</p>
+        <p className="mt-1.5 text-[13px] leading-relaxed text-emerald-300/90">
+          Bài nộp của bạn <b>vẫn được giữ nguyên</b>. Sửa quyền xong bấm nút dưới là được tính khiên
+          bình thường, không phải nộp lại.
+        </p>
         {onRetry && (
           <button
             onClick={onRetry}
