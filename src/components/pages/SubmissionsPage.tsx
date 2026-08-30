@@ -26,7 +26,7 @@ import {
   AdminReviewSlot,
 } from "@/components/ReviewComment";
 import { toast } from "sonner";
-import { DAYS, POINTS_PER_SUBMISSION, dayLabel, dayLockState } from "@/lib/lessons";
+import { DAYS, POINTS_PER_SUBMISSION, dayLabel, submitLockState } from "@/lib/lessons";
 import { GRADING_DELAY_MS, type GradeOutcome } from "@/lib/grading";
 import { gradeSubmission } from "@/fn/gradeSubmission";
 
@@ -61,6 +61,7 @@ export function SubmissionsPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [grading, setGrading] = useState<Set<string>>(new Set());
   const [now, setNow] = useState(() => Date.now());
+  const [watched, setWatched] = useState<Set<string>>(new Set());
 
   // Hộp thoại Admin chấm trực tiếp
   const [editing, setEditing] = useState<Submission | null>(null);
@@ -70,6 +71,12 @@ export function SubmissionsPage() {
 
   const load = useCallback(async () => {
     if (!user) return;
+    const { data: w } = await supabase
+      .from("watched_videos")
+      .select("video_key")
+      .eq("user_id", user.id);
+    setWatched(new Set((w ?? []).map((r) => r.video_key)));
+
     const { data } = await supabase
       .from("submissions")
       .select(
@@ -317,7 +324,7 @@ export function SubmissionsPage() {
           const draft = drafts[day.key] ?? "";
           const dirty = draft.trim() !== (existing?.doc_url ?? "");
           const working = busy === day.key;
-          const lock = dayLockState(day.day, submittedKeys);
+          const lock = submitLockState(day, submittedKeys, watched);
           const open = !lock.locked;
 
           return (
@@ -377,7 +384,9 @@ export function SubmissionsPage() {
                   <Lock className="h-3.5 w-3.5 shrink-0" />
                   {lock.kind === "date"
                     ? `Mở vào ngày ${lock.openDate}`
-                    : `Nộp bài ${dayLabel(lock.needDay)} trước đã`}
+                    : lock.kind === "prev"
+                      ? `Nộp bài ${dayLabel(lock.needDay)} trước đã`
+                      : `Xem hết video đã — mới xong ${lock.done}/${lock.total} bài`}
                 </div>
               ) : (
                 <div className="mt-3 flex gap-2">

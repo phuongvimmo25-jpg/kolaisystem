@@ -18,6 +18,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/PageHeader";
+import { useVideoProgress, REQUIRED_WATCH_RATIO } from "@/hooks/useVideoProgress";
 import { toast } from "sonner";
 import {
   DAYS,
@@ -230,6 +231,12 @@ function LessonView({
   const hasVideo = lesson.youtubeId.trim() !== "" && isOpen;
   const deadline = day ? getDayDeadline(day.day) : new Date();
 
+  const playerId = "yt-" + lesson.key;
+  const { ratio, enough } = useVideoProgress(playerId, hasVideo && !isWatched);
+  // Đã ghi nhận rồi thì không bắt xem lại
+  const canComplete = isWatched || enough;
+  const percentWatched = Math.round(ratio * 100);
+
   return (
     <div className="mx-auto max-w-[980px] space-y-5">
       {/* VIDEO LỚN — trung tâm */}
@@ -237,11 +244,12 @@ function LessonView({
         <div className="relative aspect-video w-full">
           {hasVideo ? (
             <iframe
+              id={playerId}
               className="absolute inset-0 h-full w-full"
               src={
-                "https://www.youtube-nocookie.com/embed/" +
+                "https://www.youtube.com/embed/" +
                 lesson.youtubeId +
-                "?rel=0&modestbranding=1"
+                "?rel=0&modestbranding=1&enablejsapi=1"
               }
               title={lesson.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -255,7 +263,9 @@ function LessonView({
                   ? "Sắp ra mắt"
                   : lock.kind === "date"
                     ? "Mở vào " + lock.openDate
-                    : "Nộp bài " + dayLabel(lock.needDay) + " trước đã"}
+                    : lock.kind === "prev"
+                      ? "Nộp bài " + dayLabel(lock.needDay) + " trước đã"
+                      : "Xem hết video của ngày trước đã"}
               </span>
               <span className="text-xs opacity-70">
                 {isOpen
@@ -303,26 +313,51 @@ function LessonView({
         {nextLesson ? (
           <Button
             size="lg"
-            disabled={!hasVideo || busy}
+            disabled={!hasVideo || busy || !canComplete}
             onClick={onCompleteNext}
             className="w-full bg-gradient-primary hover:opacity-90 sm:w-auto"
           >
             <CheckCircle2 className="mr-2 h-4 w-4" />
-            {isWatched ? "Sang bài " + nextLesson.code : "Hoàn thành · Sang bài " + nextLesson.code}
+            {isWatched
+              ? "Sang bài " + nextLesson.code
+              : canComplete
+                ? "Hoàn thành · Sang bài " + nextLesson.code
+                : `Xem tiếp — mới ${percentWatched}%`}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         ) : (
           <Button
             size="lg"
-            disabled={!hasVideo || busy}
+            disabled={!hasVideo || busy || !canComplete}
             onClick={onCompleteNext}
             className="w-full bg-gradient-primary hover:opacity-90 sm:w-auto"
           >
             <CheckCircle2 className="mr-2 h-4 w-4" />
-            {isWatched ? "Đã học hết bài giảng" : "Hoàn thành bài cuối"}
+            {isWatched
+              ? "Đã học hết bài giảng"
+              : canComplete
+                ? "Hoàn thành bài cuối"
+                : `Xem tiếp — mới ${percentWatched}%`}
           </Button>
         )}
       </div>
+
+      {/* Tiến độ xem thật */}
+      {hasVideo && !isWatched && (
+        <div className="-mt-2">
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-gradient-primary transition-[width] duration-500"
+              style={{ width: Math.min(100, percentWatched / REQUIRED_WATCH_RATIO) + "%" }}
+            />
+          </div>
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            {canComplete
+              ? "Đã xem đủ — bấm Hoàn thành để nhận điểm"
+              : `Cần xem ít nhất ${Math.round(REQUIRED_WATCH_RATIO * 100)}% video mới hoàn thành được. Tua nhanh không được tính.`}
+          </p>
+        </div>
+      )}
 
       {/* ══ BÀI TẬP — khối nổi bật, đặt cuối cùng ══ */}
       <section className="assignment-box">

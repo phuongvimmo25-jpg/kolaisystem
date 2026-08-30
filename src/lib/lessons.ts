@@ -182,11 +182,12 @@ export function formatOpenDate(day: number): string {
 export type LockReason =
   | { locked: false }
   | { locked: true; kind: "date"; openDate: string }
-  | { locked: true; kind: "prev"; needDay: number };
+  | { locked: true; kind: "prev"; needDay: number }
+  | { locked: true; kind: "video"; done: number; total: number };
 
 /**
  * Ngày này đã mở cho học viên chưa.
- * Phải thoả CẢ HAI: đã tới lịch, VÀ đã nộp bài của mọi ngày trước đó.
+ * Phải thoả: đã tới lịch, VÀ đã nộp bài mọi ngày trước đó.
  */
 export function dayLockState(
   day: number,
@@ -201,6 +202,26 @@ export function dayLockState(
     if (d.day < day && !submittedKeys.has(d.key)) {
       return { locked: true, kind: "prev", needDay: d.day };
     }
+  }
+  return { locked: false };
+}
+
+/**
+ * Được nộp bài của ngày này chưa.
+ * Ngoài điều kiện mở khoá, còn phải XEM HẾT video của ngày đó.
+ */
+export function submitLockState(
+  day: Day,
+  submittedKeys: Set<string>,
+  watchedKeys: Set<string>,
+  now: Date = new Date(),
+): LockReason {
+  const base = dayLockState(day.day, submittedKeys, now);
+  if (base.locked) return base;
+
+  const done = day.lessons.filter((l) => watchedKeys.has(l.key)).length;
+  if (done < day.lessons.length) {
+    return { locked: true, kind: "video", done, total: day.lessons.length };
   }
   return { locked: false };
 }
