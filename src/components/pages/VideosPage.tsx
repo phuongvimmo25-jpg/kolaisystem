@@ -20,11 +20,16 @@ import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
 import {
-  PARTS,
+  DAYS,
   ALL_LESSONS,
   POINTS_PER_VIDEO,
   POINTS_PER_SUBMISSION,
-  getLessonDeadline,
+  getDayDeadline,
+  dayLabel,
+  isDayOpen,
+  formatOpenDate,
+  dayOfLesson,
+  type Day,
   type Lesson,
 } from "@/lib/lessons";
 
@@ -101,33 +106,39 @@ export function VideosPage() {
 
           {/* Điện thoại: cuộn ngang · Máy tính: xếp dọc */}
           <div className="flex gap-1.5 overflow-x-auto pb-1 lg:flex-col lg:overflow-x-visible lg:pb-0">
-            {PARTS.map((part) => (
-              <div key={part.key} className="contents lg:block">
-                <div className="hidden px-2 pb-1.5 pt-3.5 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground/80 lg:block">
-                  {part.title}
+            {DAYS.map((day) => {
+              const open = isDayOpen(day.day);
+              return (
+                <div key={day.key} className="contents lg:block">
+                  <div className="hidden items-center gap-1.5 px-2 pb-1.5 pt-3.5 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground/80 lg:flex">
+                    {dayLabel(day.day)}
+                    {!open && <Lock className="h-3 w-3" />}
+                    {submitted.has(day.key) && <ShieldCheck className="h-3 w-3 text-gold" />}
+                  </div>
+                  {day.lessons.map((lesson) => (
+                    <RailItem
+                      key={lesson.key}
+                      active={selected === lesson.key}
+                      onClick={() => {
+                        setSelected(lesson.key);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      icon={
+                        !open ? (
+                          <Lock className="h-3.5 w-3.5 opacity-50" />
+                        ) : watched.has(lesson.key) ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                        ) : (
+                          <Circle className="h-3.5 w-3.5 opacity-40" />
+                        )
+                      }
+                      label={lesson.code}
+                      sub={lesson.title}
+                    />
+                  ))}
                 </div>
-                {part.lessons.map((lesson) => (
-                  <RailItem
-                    key={lesson.key}
-                    active={selected === lesson.key}
-                    onClick={() => {
-                      setSelected(lesson.key);
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    icon={
-                      watched.has(lesson.key) ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                      ) : (
-                        <Circle className="h-3.5 w-3.5 opacity-40" />
-                      )
-                    }
-                    label={lesson.code}
-                    sub={lesson.title}
-                    badge={submitted.has(lesson.key)}
-                  />
-                ))}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </aside>
@@ -137,7 +148,7 @@ export function VideosPage() {
         {current && (
           <LessonView
             lesson={current}
-            index={ALL_LESSONS.findIndex((l) => l.key === current.key)}
+            day={dayOfLesson(current.key)}
             nextLesson={ALL_LESSONS[ALL_LESSONS.findIndex((l) => l.key === current.key) + 1]}
             isWatched={watched.has(current.key)}
             isSubmitted={submitted.has(current.key)}
@@ -197,7 +208,7 @@ function RailItem({
 
 function LessonView({
   lesson,
-  index,
+  day,
   nextLesson,
   isWatched,
   isSubmitted,
@@ -205,15 +216,16 @@ function LessonView({
   onCompleteNext,
 }: {
   lesson: Lesson;
-  index: number;
+  day?: Day;
   nextLesson?: Lesson;
   isWatched: boolean;
   isSubmitted: boolean;
   busy: boolean;
   onCompleteNext: () => void;
 }) {
-  const hasVideo = lesson.youtubeId.trim() !== "";
-  const deadline = getLessonDeadline(index);
+  const isOpen = day ? isDayOpen(day.day) : true;
+  const hasVideo = lesson.youtubeId.trim() !== "" && isOpen;
+  const deadline = day ? getDayDeadline(day.day) : new Date();
 
   return (
     <div className="mx-auto max-w-[980px] space-y-5">
@@ -235,8 +247,12 @@ function LessonView({
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-card/40 text-muted-foreground">
               <Lock className="h-10 w-10" />
-              <span className="text-sm font-semibold">Sắp ra mắt</span>
-              <span className="text-xs opacity-70">Bài giảng này đang được quay</span>
+              <span className="text-sm font-semibold">
+                {isOpen ? "Sắp ra mắt" : "Mở vào " + formatOpenDate(day?.day ?? 1)}
+              </span>
+              <span className="text-xs opacity-70">
+                {isOpen ? "Bài giảng này đang được quay" : "Quay lại đúng ngày để học nhé"}
+              </span>
             </div>
           )}
         </div>
@@ -246,7 +262,7 @@ function LessonView({
       <div>
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <span className="rounded-md bg-primary/15 px-2 py-0.5 font-bold text-primary">
-            Bài {lesson.code}
+            {day ? dayLabel(day.day) : ""} · Bài {lesson.code}
           </span>
           {lesson.duration && (
             <span className="inline-flex items-center gap-1">
@@ -319,18 +335,18 @@ function LessonView({
             Mục tiêu
           </div>
           <p className="mt-1 text-[16px] font-semibold leading-relaxed text-foreground">
-            {lesson.assignment}
+            {day?.assignment}
           </p>
         </div>
 
         {/* Bản nộp phải có gì */}
-        {lesson.deliverables && lesson.deliverables.length > 0 && (
+        {day && day.deliverables.length > 0 && (
           <div className="mt-4">
             <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
               Bản nộp phải có
             </div>
             <ul className="mt-2 space-y-1.5">
-              {lesson.deliverables.map((d) => (
+              {day.deliverables.map((d) => (
                 <li key={d} className="flex gap-2 text-[15px] leading-relaxed text-foreground/90">
                   <CheckCircle2 className="mt-[3px] h-4 w-4 shrink-0 text-gold" />
                   <span>{d}</span>
@@ -370,7 +386,7 @@ function LessonView({
 
         <div className="mt-4">
           <Button asChild className="bg-gradient-gold text-gold-foreground hover:opacity-90">
-            <Link to="/bai-tap" hash={lesson.key}>
+            <Link to="/bai-tap" hash={day?.key ?? ""}>
               {isSubmitted ? "Sửa bài nộp" : "Nộp bài tập"}
               <ArrowRight className="ml-1.5 h-4 w-4" />
             </Link>

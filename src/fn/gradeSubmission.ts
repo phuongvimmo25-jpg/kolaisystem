@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
-import { findLesson } from "@/lib/lessons";
+import { findDay, dayLabel } from "@/lib/lessons";
 import {
   GRADING_MODEL,
   GRADING_SYSTEM_PROMPT,
@@ -118,8 +118,8 @@ export const gradeSubmission = createServerFn({ method: "POST" })
     const user = userData?.user;
     if (!user) throw new Error("Phiên đăng nhập đã hết hạn.");
 
-    const lesson = findLesson(data.lessonKey);
-    if (!lesson) throw new Error("Không tìm thấy bài học.");
+    const day = findDay(data.lessonKey);
+    if (!day) throw new Error("Không tìm thấy bài tập.");
 
     const { data: sub } = await supabase
       .from("submissions")
@@ -140,10 +140,10 @@ export const gradeSubmission = createServerFn({ method: "POST" })
     const studentName = profile?.display_name ?? "bạn";
 
     const brief = buildAssignmentBrief(
-      lesson.code,
-      lesson.title,
-      lesson.assignment,
-      lesson.deliverables,
+      dayLabel(day.day),
+      day.title,
+      day.assignment,
+      day.deliverables,
     );
     const userText = `TÊN HỌC VIÊN: ${studentName}\n\nĐỀ BÀI:\n${brief}\n\n=====\n\nBÀI LÀM của học viên nằm trong tệp PDF đính kèm.`;
 

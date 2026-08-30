@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Clock3, Check, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { currentDeadline, type DeadlineInfo } from "@/lib/lessons";
+import { currentDeadline, dayLabel, type DeadlineInfo } from "@/lib/lessons";
 
 function remainingUntil(deadline: Date, now: Date) {
   const totalMs = Math.max(0, deadline.getTime() - now.getTime());
@@ -70,18 +70,22 @@ export function CountdownBar() {
   }
 
   const left = remainingUntil(info.deadline, now);
-  const isSubmitted = submitted.has(info.lesson.key);
+  const isSubmitted = submitted.has(info.day.key);
   const urgent = left.totalMs < 24 * 3600 * 1000;
 
   const clock =
     (left.days > 0 ? left.days + "n " : "") +
-    pad(left.hours) + ":" + pad(left.minutes) + ":" + pad(left.seconds);
+    pad(left.hours) +
+    ":" +
+    pad(left.minutes) +
+    ":" +
+    pad(left.seconds);
 
   if (isSubmitted) {
     return (
       <Pill tone="done">
         <Check className="h-3 w-3 shrink-0" />
-        <span>Đã nộp bài {info.lesson.code}</span>
+        <span>Đã nộp {dayLabel(info.day.day)}</span>
         <span className="opacity-40">·</span>
         <span className="font-mono tabular-nums opacity-80">{clock}</span>
       </Pill>
@@ -89,10 +93,10 @@ export function CountdownBar() {
   }
 
   return (
-    <Link to="/bai-tap" hash={info.lesson.key}>
+    <Link to="/bai-tap" hash={info.day.key}>
       <Pill tone={urgent ? "urgent" : "normal"} interactive>
         <Clock3 className="h-3 w-3 shrink-0" />
-        <span>Hạn bài {info.lesson.code}</span>
+        <span>Hạn {dayLabel(info.day.day)}</span>
         <span className="opacity-40">·</span>
         <span className="font-mono font-semibold tabular-nums">{clock}</span>
       </Pill>

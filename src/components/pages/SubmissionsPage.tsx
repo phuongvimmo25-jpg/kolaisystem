@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { ShieldCheck, ExternalLink, Check, X, CircleDashed } from "lucide-react";
+import { ShieldCheck, ExternalLink, Check, X, CircleDashed, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useReviewer } from "@/hooks/useReviewer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,11 +18,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/PageHeader";
-import { toast } from "sonner";
-import { ALL_LESSONS, POINTS_PER_SUBMISSION } from "@/lib/lessons";
-import { GRADING_DELAY_MS } from "@/lib/grading";
-import { gradeSubmission } from "@/fn/gradeSubmission";
-import { useReviewer } from "@/hooks/useReviewer";
 import {
   ReviewComment,
   ReviewPending,
@@ -28,7 +25,10 @@ import {
   ReviewError,
   AdminReviewSlot,
 } from "@/components/ReviewComment";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { toast } from "sonner";
+import { DAYS, POINTS_PER_SUBMISSION, dayLabel, isDayOpen, formatOpenDate } from "@/lib/lessons";
+import { GRADING_DELAY_MS } from "@/lib/grading";
+import { gradeSubmission } from "@/fn/gradeSubmission";
 
 interface Submission {
   lesson_key: string;
@@ -53,19 +53,131 @@ function isValidUrl(url: string) {
 
 export function SubmissionsPage() {
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
+  const reviewerProfile = useReviewer();
+
   const [subs, setSubs] = useState<Record<string, Submission>>({});
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [grading, setGrading] = useState<Set<string>>(new Set());
   const [now, setNow] = useState(() => Date.now());
-  const reviewerProfile = useReviewer();
-  const { isAdmin } = useIsAdmin();
 
   // Hộp thoại Admin chấm trực tiếp
   const [editing, setEditing] = useState<Submission | null>(null);
   const [adminScore, setAdminScore] = useState("");
   const [adminNote, setAdminNote] = useState("");
   const [savingAdmin, setSavingAdmin] = useState(false);
+
+  const load = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("submissions")
+      .select(
+        "lesson_key, doc_url, updated_at, ai_score, ai_feedback, graded_at, grade_error, admin_score, admin_feedback",
+      )
+      .eq("user_id", user.id);
+
+    const map: Record<string, Submission> = {};
+    const d: Record<string, string> = {};
+    for (const row of data ?? []) {
+      map[row.lesson_key] = row as Submission;
+      d[row.lesson_key] = row.doc_url;
+    }
+    setSubs(map);
+    setDrafts((prev) => ({ ...d, ...prev }));
+  }, [user]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Nhịp 20 giây để đếm ngược tới lúc Phong phản hồi
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 20_000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Bài nộp quá 5 phút mà chưa chấm thì gọi chấm
+  useEffect(() => {
+    const due = Object.values(subs).filter(
+      (r) =>
+        !r.graded_at &&
+        !grading.has(r.lesson_key) &&
+        now - new Date(r.updated_at).getTime() >= GRADING_DELAY_MS,
+    );
+    if (due.length === 0) return;
+
+    for (const row of due) {
+      setGrading((prev) => new Set(prev).add(row.lesson_key));
+      gradeSubmission({ data: { lessonKey: row.lesson_key } })
+        .then(() => load())
+        .catch(() => {
+          /* lỗi mạng — lần tải trang sau sẽ thử lại */
+        })
+        .finally(() =>
+          setGrading((prev) => {
+            const n = new Set(prev);
+            n.delete(row.lesson_key);
+            return n;
+          }),
+        );
+    }
+  }, [subs, now, grading, load]);
+
+  const save = async (dayKey: string) => {
+    if (!user) return;
+    const url = (drafts[dayKey] ?? "").trim();
+
+    if (!url) {
+      toast.error("Chưa có link");
+      return;
+    }
+    if (!isValidUrl(url)) {
+      toast.error("Link không hợp lệ", { description: "Phải bắt đầu bằng https://" });
+      return;
+    }
+
+    setBusy(dayKey);
+    const { error } = await supabase.from("submissions").upsert(
+      {
+        user_id: user.id,
+        lesson_key: dayKey,
+        doc_url: url,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id,lesson_key" },
+    );
+    setBusy(null);
+
+    if (error) {
+      toast.error("Nộp bài thất bại", { description: error.message });
+      return;
+    }
+
+    toast.success(
+      subs[dayKey] ? "Đã cập nhật link" : "Nộp bài thành công! +" + POINTS_PER_SUBMISSION + " điểm",
+    );
+    load();
+  };
+
+  const remove = async (dayKey: string) => {
+    if (!user) return;
+    setBusy(dayKey);
+    const { error } = await supabase
+      .from("submissions")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("lesson_key", dayKey);
+    setBusy(null);
+
+    if (error) {
+      toast.error("Không xoá được", { description: error.message });
+      return;
+    }
+    setDrafts((prev) => ({ ...prev, [dayKey]: "" }));
+    toast.success("Đã xoá bài nộp");
+    load();
+  };
 
   const openAdminEditor = (sub: Submission) => {
     setEditing(sub);
@@ -102,120 +214,7 @@ export function SubmissionsPage() {
     load();
   };
 
-  const load = useCallback(async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from("submissions")
-      .select(
-        "lesson_key, doc_url, updated_at, ai_score, ai_feedback, graded_at, grade_error, admin_score, admin_feedback",
-      )
-      .eq("user_id", user.id);
-
-    const map: Record<string, Submission> = {};
-    const d: Record<string, string> = {};
-    for (const row of data ?? []) {
-      map[row.lesson_key] = row as Submission;
-      d[row.lesson_key] = row.doc_url;
-    }
-    setSubs(map);
-    setDrafts((prev) => ({ ...d, ...prev }));
-  }, [user]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  // Nhịp 20 giây để đếm ngược tới lúc Phong phản hồi
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 20_000);
-    return () => clearInterval(id);
-  }, []);
-
-  /** Bài đã nộp quá 5 phút mà chưa chấm thì gọi chấm. */
-  useEffect(() => {
-    const due = Object.values(subs).filter(
-      (r) =>
-        !r.graded_at &&
-        !grading.has(r.lesson_key) &&
-        now - new Date(r.updated_at).getTime() >= GRADING_DELAY_MS,
-    );
-    if (due.length === 0) return;
-
-    for (const row of due) {
-      setGrading((prev) => new Set(prev).add(row.lesson_key));
-      gradeSubmission({ data: { lessonKey: row.lesson_key } })
-        .then(() => load())
-        .catch(() => {
-          /* lỗi mạng — lần tải trang sau sẽ thử lại */
-        })
-        .finally(() =>
-          setGrading((prev) => {
-            const n = new Set(prev);
-            n.delete(row.lesson_key);
-            return n;
-          }),
-        );
-    }
-  }, [subs, now, grading, load]);
-
-  const save = async (lessonKey: string) => {
-    if (!user) return;
-    const url = (drafts[lessonKey] ?? "").trim();
-
-    if (!url) {
-      toast.error("Chưa có link");
-      return;
-    }
-    if (!isValidUrl(url)) {
-      toast.error("Link không hợp lệ", { description: "Phải bắt đầu bằng https://" });
-      return;
-    }
-
-    setBusy(lessonKey);
-    const { error } = await supabase.from("submissions").upsert(
-      {
-        user_id: user.id,
-        lesson_key: lessonKey,
-        doc_url: url,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id,lesson_key" },
-    );
-    setBusy(null);
-
-    if (error) {
-      toast.error("Nộp bài thất bại", { description: error.message });
-      return;
-    }
-
-    toast.success(
-      subs[lessonKey]
-        ? "Đã cập nhật link"
-        : "Nộp bài thành công! +" + POINTS_PER_SUBMISSION + " điểm",
-    );
-    load();
-  };
-
-  const remove = async (lessonKey: string) => {
-    if (!user) return;
-    setBusy(lessonKey);
-    const { error } = await supabase
-      .from("submissions")
-      .delete()
-      .eq("user_id", user.id)
-      .eq("lesson_key", lessonKey);
-    setBusy(null);
-
-    if (error) {
-      toast.error("Không xoá được", { description: error.message });
-      return;
-    }
-    setDrafts((prev) => ({ ...prev, [lessonKey]: "" }));
-    toast.success("Đã xoá bài nộp");
-    load();
-  };
-
-  const done = ALL_LESSONS.filter((l) => subs[l.key]).length;
+  const done = DAYS.filter((d) => subs[d.key]).length;
 
   return (
     <div className="mx-auto max-w-[820px]">
@@ -223,46 +222,51 @@ export function SubmissionsPage() {
         eyebrow="Bài tập"
         title="Nộp"
         accent="bài tập"
-        description="Dán link Google Docs bài làm. Nộp rồi vẫn sửa được."
+        description="Mỗi ngày một bài tập. Dán link Google Docs, nộp rồi vẫn sửa được."
         action={
           <div className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5">
             <ShieldCheck className="h-4 w-4 text-gold" />
             <span className="text-sm font-bold text-gold">
               {done}
-              <span className="font-medium text-gold/60">/{ALL_LESSONS.length}</span>
+              <span className="font-medium text-gold/60">/{DAYS.length}</span>
             </span>
           </div>
         }
       />
 
-      <div className="space-y-2">
-        {ALL_LESSONS.map((lesson, idx) => {
-          const existing = subs[lesson.key];
-          const draft = drafts[lesson.key] ?? "";
+      <div className="space-y-3">
+        {DAYS.map((day) => {
+          const existing = subs[day.key];
+          const draft = drafts[day.key] ?? "";
           const dirty = draft.trim() !== (existing?.doc_url ?? "");
-          const working = busy === lesson.key;
+          const working = busy === day.key;
+          const open = isDayOpen(day.day);
 
           return (
             <Card
-              key={lesson.key}
-              id={lesson.key}
+              key={day.key}
+              id={day.key}
               className={
-                "scroll-mt-20 p-3 transition-colors " +
-                (existing ? "border-gold/25 bg-gold/[0.05]" : "border-border/70 bg-card/50")
+                "scroll-mt-20 p-4 transition-colors " +
+                (!open
+                  ? "border-border/50 bg-card/25 opacity-70"
+                  : existing
+                    ? "border-gold/25 bg-gold/[0.05]"
+                    : "border-border/70 bg-card/50")
               }
             >
-              {/* Dòng 1 — số bài · tên bài · trạng thái */}
-              <div className="mb-2 flex items-start gap-2">
+              {/* Đầu thẻ — Ngày N + trạng thái */}
+              <div className="flex items-center gap-2">
                 <span
                   className={
-                    "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-black " +
+                    "shrink-0 whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-black " +
                     (existing ? "bg-gold/20 text-gold" : "bg-primary/15 text-primary")
                   }
                 >
-                  {idx + 1}
+                  {dayLabel(day.day)}
                 </span>
-                <span className="min-w-0 flex-1 text-sm font-semibold leading-snug">
-                  {lesson.assignment}
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold">
+                  {day.assignment}
                 </span>
                 {existing ? (
                   <a
@@ -270,55 +274,72 @@ export function SubmissionsPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Mở bài đã nộp"
-                    className="mt-0.5 shrink-0 text-gold transition hover:opacity-70"
+                    className="shrink-0 text-gold transition hover:opacity-70"
                   >
                     <ExternalLink className="h-4 w-4" />
                   </a>
                 ) : (
-                  <CircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/50" />
+                  <CircleDashed className="h-4 w-4 shrink-0 text-muted-foreground/50" />
                 )}
               </div>
 
-              {/* Dòng 2 — ô link + nút */}
-              <div className="flex gap-2">
-                <Input
-                  type="url"
-                  inputMode="url"
-                  placeholder="https://docs.google.com/..."
-                  value={draft}
-                  onChange={(e) => setDrafts((prev) => ({ ...prev, [lesson.key]: e.target.value }))}
-                  onKeyDown={(e) => e.key === "Enter" && dirty && save(lesson.key)}
-                  className="h-9 flex-1 bg-background/60 text-sm"
-                />
+              {/* Yêu cầu của bài */}
+              <ul className="mt-2.5 space-y-1">
+                {day.deliverables.map((d, i) => (
+                  <li key={d} className="flex gap-2 text-[13px] leading-relaxed text-foreground/80">
+                    <span className="mt-px shrink-0 font-bold text-muted-foreground">{i + 1}.</span>
+                    <span>{d}</span>
+                  </li>
+                ))}
+              </ul>
 
-                <Button
-                  size="sm"
-                  onClick={() => save(lesson.key)}
-                  disabled={working || !dirty}
-                  className="h-9 shrink-0 bg-gradient-primary px-3 hover:opacity-90"
-                >
-                  <Check className="h-4 w-4" />
-                  <span className="ml-1 hidden sm:inline">{existing ? "Cập nhật" : "Nộp"}</span>
-                </Button>
+              {/* Ô nộp — hoặc khoá nếu chưa tới ngày */}
+              {!open ? (
+                <div className="mt-3 flex items-center gap-2 rounded-lg border border-dashed border-border/70 bg-background/30 px-3 py-2 text-[13px] text-muted-foreground">
+                  <Lock className="h-3.5 w-3.5 shrink-0" />
+                  Mở vào ngày {formatOpenDate(day.day)}
+                </div>
+              ) : (
+                <div className="mt-3 flex gap-2">
+                  <Input
+                    type="url"
+                    inputMode="url"
+                    placeholder="https://docs.google.com/..."
+                    value={draft}
+                    onChange={(e) => setDrafts((prev) => ({ ...prev, [day.key]: e.target.value }))}
+                    onKeyDown={(e) => e.key === "Enter" && dirty && save(day.key)}
+                    className="h-9 flex-1 bg-background/60 text-sm"
+                  />
 
-                {existing && (
                   <Button
                     size="sm"
-                    variant="ghost"
-                    onClick={() => remove(lesson.key)}
-                    disabled={working}
-                    title="Xoá bài nộp"
-                    className="h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+                    onClick={() => save(day.key)}
+                    disabled={working || !dirty}
+                    className="h-9 shrink-0 bg-gradient-primary px-3 hover:opacity-90"
                   >
-                    <X className="h-4 w-4" />
+                    <Check className="h-4 w-4" />
+                    <span className="ml-1 hidden sm:inline">{existing ? "Cập nhật" : "Nộp"}</span>
                   </Button>
-                )}
-              </div>
+
+                  {existing && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => remove(day.key)}
+                      disabled={working}
+                      title="Xoá bài nộp"
+                      className="h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              )}
 
               {existing && (
                 <ReviewBlock
                   sub={existing}
-                  isGrading={grading.has(lesson.key)}
+                  isGrading={grading.has(day.key)}
                   now={now}
                   isAdmin={isAdmin}
                   onAdminEdit={() => openAdminEditor(existing)}

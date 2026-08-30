@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { Card } from "@/components/ui/card";
-import { ALL_LESSONS, PARTS, COURSE_INTRO, currentDeadline } from "@/lib/lessons";
+import { ALL_LESSONS, DAYS, COURSE_INTRO, currentDeadline, dayLabel } from "@/lib/lessons";
 import homeHero from "@/assets/home-hero.jpg";
 
 /** Huy hiệu tính thẳng từ tiến độ — không cần bảng riêng, không bao giờ lệch số liệu. */
@@ -28,7 +28,7 @@ const BADGES: BadgeDef[] = [
     key: "part",
     icon: "📚",
     name: "Xong một phần",
-    earned: (c) => c.subs >= (PARTS[0]?.lessons.length ?? 3),
+    earned: (c) => c.subs >= 1,
   },
   { key: "podium", icon: "⭐", name: "Top 3", earned: (c) => c.rank >= 1 && c.rank <= 3 },
   { key: "all", icon: "👑", name: "Trọn vẹn", earned: (c) => c.total > 0 && c.subs >= c.total },
@@ -58,8 +58,10 @@ export function HomePage() {
   const subs = profile?.submission_count ?? 0;
   const watched = profile?.watched_count ?? 0;
   const points = profile?.total_points ?? 0;
-  const total = ALL_LESSONS.length;
-  const percent = total === 0 ? 0 : Math.round(((watched + subs) / (total * 2)) * 100);
+  const total = DAYS.length;
+  const totalVideos = ALL_LESSONS.length;
+  const percent =
+    total === 0 ? 0 : Math.round(((watched / Math.max(1, totalVideos) + subs / total) / 2) * 100);
   const started = watched + subs > 0;
 
   const ctx = { subs, watched, rank, total };
@@ -75,7 +77,8 @@ export function HomePage() {
           </h1>
           {next && (
             <p className="mt-1 truncate text-[13px] text-muted-foreground">
-              Sắp tới hạn: <b className="text-gold">bài {next.lesson.code}</b> — {next.lesson.title}
+              Sắp tới hạn: <b className="text-gold">{dayLabel(next.day.day)}</b> —{" "}
+              {next.day.subtitle}
             </p>
           )}
         </div>
@@ -139,7 +142,7 @@ export function HomePage() {
             <ArrowRight className="h-[18px] w-[18px] transition-transform group-hover:translate-x-1" />
           </Link>
           <p className="text-xs text-muted-foreground">
-            {total} bài giảng · nộp bài nhận khiên vàng · leo bảng Vinh danh
+            {totalVideos} bài giảng · {total} bài tập · leo bảng Vinh danh
           </p>
         </div>
       </section>

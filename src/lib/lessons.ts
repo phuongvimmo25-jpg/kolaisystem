@@ -1,14 +1,15 @@
 /**
- * Nội dung khoá học.
+ * Nội dung khoá học — tổ chức theo NGÀY.
  *
- * ĐỂ THÊM BÀI GIẢNG THẬT: sửa `youtubeId` thành mã video YouTube.
- * Mã video là đoạn sau "v=" trong link, ví dụ:
+ * Mỗi NGÀY có nhiều video bài giảng nhưng CHỈ MỘT bài tập nộp.
+ *
+ * THÊM VIDEO: sửa `youtubeId` thành mã video YouTube — đoạn sau "v=" trong link.
  *   https://www.youtube.com/watch?v=dQw4w9WgXcQ  ->  youtubeId: "dQw4w9WgXcQ"
- * Để trống ("") thì bài đó hiện nhãn "Sắp ra mắt".
+ * Để trống ("") thì video đó hiện nhãn "Sắp ra mắt".
  */
 
 export interface Lesson {
-  /** Khoá định danh — ĐỪNG đổi sau khi học viên đã nộp bài, sẽ mất liên kết bài nộp. */
+  /** Khoá định danh — ĐỪNG đổi sau khi khoá học chạy. */
   key: string;
   /** Số hiệu hiển thị, ví dụ "1.1". */
   code: string;
@@ -18,51 +19,54 @@ export interface Lesson {
   youtubeId: string;
   /** Thời lượng, để trống nếu chưa biết. */
   duration?: string;
-  /** Mục tiêu cần đạt sau bài học. */
-  assignment: string;
-  /** Danh sách cụ thể phải có trong bản Google Docs nộp lên. */
-  deliverables?: string[];
 }
 
-export interface Part {
+export interface Day {
+  /** Khoá bài nộp — ĐỪNG đổi sau khi học viên đã nộp, sẽ mất liên kết. */
   key: string;
+  /** Ngày thứ mấy của khoá. */
+  day: number;
   title: string;
   subtitle: string;
+  /** Các video của ngày này. */
   lessons: Lesson[];
+  /** Mục tiêu của bài tập ngày này. */
+  assignment: string;
+  /** Danh sách cụ thể phải có trong bản Google Docs nộp lên. */
+  deliverables: string[];
 }
 
 export const COURSE_OVERVIEW = {
   title: "Hệ thống huấn luyện cấp tốc của những chiến thần",
   intro:
-    "Chương trình huấn luyện dành cho KOL và Affiliate Việt Nam. Bạn xem bài giảng, làm bài tập, nộp qua Google Docs. Mỗi bài nộp được ghi nhận bằng một huy hiệu khiên vàng trên bảng Vinh danh.",
+    "Chương trình huấn luyện dành cho KOL và Affiliate Việt Nam. Mỗi ngày mở một buổi học, xem hết video rồi nộp một bài tập qua Google Docs. Mỗi bài nộp được ghi nhận bằng một huy hiệu khiên vàng trên bảng Vinh danh.",
   steps: [
     {
       title: "Xem bài giảng",
-      description: "Mở từng bài theo thứ tự. Xem hết video rồi bấm “Đã xem xong” để hệ thống ghi nhận.",
+      description: "Mỗi ngày mở một buổi. Xem hết video rồi bấm “Hoàn thành” để hệ thống ghi nhận.",
     },
     {
       title: "Làm bài tập",
-      description: "Mỗi bài giảng có một đề bài. Làm trên Google Docs, nhớ mở quyền xem cho người có link.",
+      description:
+        "Mỗi ngày một bài tập. Làm trên Google Docs, nhớ mở quyền xem cho người có link.",
     },
     {
       title: "Nộp link",
-      description: "Dán link Google Docs vào tab Nộp bài tập. Nộp rồi vẫn sửa link được bất cứ lúc nào.",
+      description:
+        "Dán link Google Docs vào tab Nộp bài tập. Nộp rồi vẫn sửa link được bất cứ lúc nào.",
     },
     {
       title: "Nhận huy hiệu",
-      description: "Mỗi bài nộp = 1 khiên vàng cạnh tên bạn ở bảng Vinh danh. Nộp càng nhiều, hạng càng cao.",
+      description: "Mỗi bài nộp = 1 khiên vàng cạnh tên bạn ở bảng Vinh danh.",
     },
   ],
   scoring: [
-    { label: "Nộp 1 bài tập", points: 10 },
+    { label: "Nộp bài tập của một ngày", points: 10 },
     { label: "Xem xong 1 video", points: 5 },
   ],
 };
 
-/**
- * Video giới thiệu ở Trang chủ — xem trước khi vào học.
- * Đổi `youtubeId` để thay video khác.
- */
+/** Video giới thiệu ở Trang chủ — xem trước khi vào học. */
 export const COURSE_INTRO = {
   youtubeId: "XAcAxlUrEHU",
   eyebrow: "Bắt đầu từ đây",
@@ -71,10 +75,11 @@ export const COURSE_INTRO = {
     "Dành 10 phút xem video này trước. Bạn sẽ hiểu toàn bộ lộ trình, cách hệ thống chấm điểm, và điều gì đang chờ ở cuối chặng đường.",
 };
 
-export const PARTS: Part[] = [
+export const DAYS: Day[] = [
   {
-    key: "phan-1",
-    title: "Phần 1 — Nền tảng công cụ AI",
+    key: "ngay-1",
+    day: 1,
+    title: "Ngày 1 — Nền tảng công cụ AI",
     subtitle: "Hiểu bộ công cụ trước khi bắt tay làm: Skill, MCP, Sub-Agent, ChatGPT và Codex.",
     lessons: [
       {
@@ -84,14 +89,6 @@ export const PARTS: Part[] = [
         description:
           "Ba khái niệm nền tảng của hệ thống AI hiện đại: Skill là gì, MCP kết nối những gì, và Sub-Agent hoạt động ra sao.",
         youtubeId: "jYKzQePWbO8",
-        assignment:
-          "Hiểu được Skill là gì và nó hoạt động như thế nào với AI Agent.",
-        deliverables: [
-          "Định nghĩa Skill bằng lời của bạn, không chép lại nguyên văn trong video",
-          "Sơ đồ hoặc mô tả các bước một AI Agent gọi tới Skill",
-          "Phân biệt Skill với MCP và Sub-Agent — mỗi cái một câu",
-          "Một ví dụ Skill bạn muốn dùng cho công việc của mình, kèm lý do",
-        ],
       },
       {
         key: "p1-b2",
@@ -101,12 +98,6 @@ export const PARTS: Part[] = [
           "Phân biệt ChatGPT, chế độ Work và Codex — cái nào dùng khi nào, mạnh yếu ở đâu.",
         youtubeId: "tCrqO_1YXTU",
         duration: "16 phút",
-        assignment: "Tải được ChatGPT Codex về máy.",
-        deliverables: [
-          "Ảnh chụp màn hình Codex đã chạy được trên máy bạn",
-          "Ghi rõ bạn dùng ChatGPT bản nào và vì sao chọn bản đó",
-          "Liệt kê lỗi gặp trong lúc cài và cách bạn xử lý (nếu không gặp lỗi, ghi rõ là không)",
-        ],
       },
       {
         key: "p1-b3",
@@ -115,75 +106,93 @@ export const PARTS: Part[] = [
         description:
           "Đăng ký tài khoản ChatGPT Plus, cài app Codex về máy, và cách dùng sao cho không đốt token.",
         youtubeId: "Is-Z7yFm6qc",
-        assignment:
-          "Làm quen được toàn bộ giao diện từ web tới app và có thể thao tác như một chuyên gia.",
-        deliverables: [
-          "Ảnh chụp màn hình bản web và bản app, chú thích các khu vực chính",
-          "Liệt kê ít nhất 5 thao tác bạn đã tự làm được",
-          "Nêu 3 mẹo giúp dùng ít token hơn mà bạn rút ra từ bài học",
-          "Một việc thật trong công việc của bạn đã thử làm bằng Codex, kèm kết quả",
-        ],
       },
+    ],
+    assignment: "Nắm được Skill, cài xong Codex và dùng thành thạo giao diện.",
+    deliverables: [
+      "Hiểu được Skill là gì và nó hoạt động như thế nào với AI Agent",
+      "Tải được ChatGPT Codex về máy",
+      "Làm quen được toàn bộ giao diện từ web tới app và có thể thao tác như một chuyên gia",
     ],
   },
 ];
 
-/** Tất cả bài học của mọi phần, gộp phẳng thành một mảng. */
-export const ALL_LESSONS: Lesson[] = PARTS.flatMap((p) => p.lessons);
+/** Tất cả video của mọi ngày, gộp phẳng. */
+export const ALL_LESSONS: Lesson[] = DAYS.flatMap((d) => d.lessons);
 
 export function findLesson(key: string): Lesson | undefined {
   return ALL_LESSONS.find((l) => l.key === key);
+}
+
+export function findDay(key: string): Day | undefined {
+  return DAYS.find((d) => d.key === key);
+}
+
+/** Ngày chứa video này. */
+export function dayOfLesson(lessonKey: string): Day | undefined {
+  return DAYS.find((d) => d.lessons.some((l) => l.key === lessonKey));
 }
 
 export const POINTS_PER_SUBMISSION = 10;
 export const POINTS_PER_VIDEO = 5;
 
 // ─────────────────────────────────────────────────────────────
-// HẠN NỘP BÀI
+// LỊCH MỞ KHOÁ & HẠN NỘP
 // ─────────────────────────────────────────────────────────────
 
 /**
- * Ngày khai giảng — MỐC GỐC để tính hạn nộp mọi bài.
- * Định dạng YYYY-MM-DD, theo giờ Việt Nam.
- *
- * ĐỔI NGÀY NÀY khi mở lớp mới. Cả lớp dùng chung một hạn,
- * nên bảng Vinh danh công bằng giữa các học viên.
+ * Ngày khai giảng — MỐC GỐC cho cả lịch mở khoá lẫn hạn nộp.
+ * Định dạng YYYY-MM-DD, theo giờ Việt Nam. ĐỔI KHI MỞ LỚP MỚI.
  */
 export const COURSE_START_DATE = "2026-08-30";
 
-/**
- * Mỗi bài cách nhau bao nhiêu ngày. Mặc định 1 bài / ngày:
- * bài 1 hạn hết ngày khai giảng, bài 2 hạn hết ngày hôm sau...
- */
-export const DAYS_PER_LESSON = 1;
+/** Nhãn hiển thị: "Ngày 1", "Ngày 2"... */
+export function dayLabel(day: number): string {
+  return "Ngày " + day;
+}
 
-/** Hạn nộp của bài thứ `index` (tính từ 0) — 23:59:59 giờ Việt Nam. */
-export function getLessonDeadline(index: number): Date {
+/** Mốc mở khoá của một ngày — 00:00 giờ Việt Nam. */
+export function getDayOpenDate(day: number): Date {
   const [y, m, d] = COURSE_START_DATE.split("-").map(Number);
-  // 23:59:59 giờ VN (UTC+7) = 16:59:59 UTC cùng ngày
-  const utcMs = Date.UTC(y, m - 1, d + index * DAYS_PER_LESSON, 16, 59, 59);
-  return new Date(utcMs);
+  // 00:00 giờ VN (UTC+7) = 17:00 UTC ngày hôm trước
+  return new Date(Date.UTC(y, m - 1, d + (day - 1) - 1, 17, 0, 0));
+}
+
+/** Hạn nộp bài của một ngày — 23:59:59 giờ Việt Nam của chính ngày đó. */
+export function getDayDeadline(day: number): Date {
+  const [y, m, d] = COURSE_START_DATE.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + (day - 1), 16, 59, 59));
+}
+
+/** Ngày này đã tới lịch mở chưa. */
+export function isDayOpen(day: number, now: Date = new Date()): boolean {
+  return now.getTime() >= getDayOpenDate(day).getTime();
+}
+
+/** Ngày mở dạng dd/mm để hiện cho học viên. */
+export function formatOpenDate(day: number): string {
+  return getDayOpenDate(day).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
 }
 
 export interface DeadlineInfo {
-  lesson: Lesson;
-  index: number;
+  day: Day;
   deadline: Date;
   overdue: boolean;
 }
 
-/** Tất cả bài kèm hạn nộp, theo đúng thứ tự trong khoá. */
+/** Tất cả ngày kèm hạn nộp, theo thứ tự. */
 export function allDeadlines(now: Date = new Date()): DeadlineInfo[] {
-  return ALL_LESSONS.map((lesson, index) => {
-    const deadline = getLessonDeadline(index);
-    return { lesson, index, deadline, overdue: now.getTime() > deadline.getTime() };
+  return DAYS.map((day) => {
+    const deadline = getDayDeadline(day.day);
+    return { day, deadline, overdue: now.getTime() > deadline.getTime() };
   });
 }
 
-/**
- * Bài đang tới hạn: bài gần nhất chưa quá hạn.
- * Hết hạn tất cả thì trả về null.
- */
+/** Ngày đang tới hạn: ngày gần nhất chưa quá hạn. Hết hạn tất cả thì null. */
 export function currentDeadline(now: Date = new Date()): DeadlineInfo | null {
   return allDeadlines(now).find((d) => !d.overdue) ?? null;
 }
