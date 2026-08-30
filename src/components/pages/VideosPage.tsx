@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
 import {
   COURSE_OVERVIEW,
@@ -95,10 +96,8 @@ export function VideosPage() {
         <div className="rounded-2xl border border-border/70 bg-card/45 p-2.5 lg:max-h-[calc(100vh-6.5rem)] lg:overflow-y-auto">
           <div className="px-2 pb-2 pt-1">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                Nội dung khoá học
-              </span>
-              <span className="text-[10px] font-semibold text-primary">{percent}%</span>
+              <span className="eyebrow">Nội dung</span>
+              <span className="text-[11px] font-bold text-primary">{percent}%</span>
             </div>
             <Progress value={percent} className="mt-1.5 h-1" />
           </div>
@@ -114,7 +113,7 @@ export function VideosPage() {
 
             {PARTS.map((part) => (
               <div key={part.key} className="contents lg:block">
-                <div className="hidden px-2 pb-1 pt-3 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/70 lg:block">
+                <div className="hidden px-2 pb-1.5 pt-3.5 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground/80 lg:block">
                   {part.title}
                 </div>
                 {part.lessons.map((lesson) => (
@@ -190,13 +189,13 @@ function RailItem({
       <span className="shrink-0">{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5">
-          <span className="text-[13px] font-bold leading-none">{label}</span>
+          <span className="text-sm font-bold leading-none">{label}</span>
           {badge && <ShieldCheck className="h-3 w-3 shrink-0 text-gold" />}
         </span>
         {sub && (
           <span
             className={
-              "mt-0.5 hidden truncate text-[11px] leading-tight lg:block " +
+              "mt-1 hidden truncate text-[12px] leading-tight lg:block " +
               (active ? "opacity-80" : "opacity-60")
             }
           >
@@ -253,7 +252,7 @@ function LessonView({
 
       {/* Thông tin bài */}
       <div>
-        <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <span className="rounded-md bg-primary/15 px-2 py-0.5 font-bold text-primary">
             Bài {lesson.code}
           </span>
@@ -274,18 +273,16 @@ function LessonView({
           )}
         </div>
 
-        <h1 className="mt-2 text-xl font-black leading-snug tracking-tight md:text-2xl">
-          {lesson.title}
-        </h1>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{lesson.description}</p>
+        <h1 className="mt-2.5 text-[20px] font-black md:text-[26px]">{lesson.title}</h1>
+        <p className="mt-2.5 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
+          {lesson.description}
+        </p>
       </div>
 
       {/* Đề bài */}
       <Card className="border-border/70 bg-card/50 p-4">
-        <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-          Bài tập
-        </div>
-        <p className="mt-1.5 text-sm leading-relaxed text-foreground/85">{lesson.assignment}</p>
+        <div className="eyebrow">Bài tập</div>
+        <p className="mt-2 text-[15px] leading-relaxed text-foreground/90">{lesson.assignment}</p>
       </Card>
 
       {/* Hành động */}
@@ -333,22 +330,18 @@ function OverviewView({
 }) {
   return (
     <div className="mx-auto max-w-[980px] space-y-5">
-      <div>
-        <h1 className="text-2xl font-black tracking-tight md:text-3xl">
-          <span className="text-gradient-primary">Tổng quan</span>
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          {COURSE_OVERVIEW.intro}
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Khoá huấn luyện"
+        title="Tổng"
+        accent="quan"
+        description={COURSE_OVERVIEW.intro}
+      />
 
       <Card className="border-border bg-card/60 p-5">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Tiến độ của bạn
-            </div>
-            <div className="mt-1 text-3xl font-black text-gradient-primary">{percent}%</div>
+            <div className="eyebrow">Tiến độ của bạn</div>
+            <div className="mt-1.5 text-[34px] font-black leading-none text-gradient-primary">{percent}%</div>
           </div>
           <div className="flex gap-6 text-sm">
             <div>
@@ -356,14 +349,14 @@ function OverviewView({
                 {doneVideos}
                 <span className="text-muted-foreground">/{total}</span>
               </div>
-              <div className="text-xs text-muted-foreground">video đã xem</div>
+              <div className="text-[13px] text-muted-foreground">video đã xem</div>
             </div>
             <div>
               <div className="font-bold text-foreground">
                 {doneSubs}
                 <span className="text-muted-foreground">/{total}</span>
               </div>
-              <div className="text-xs text-muted-foreground">bài đã nộp</div>
+              <div className="text-[13px] text-muted-foreground">bài đã nộp</div>
             </div>
           </div>
         </div>
@@ -379,17 +372,15 @@ function OverviewView({
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-primary text-xs font-black text-primary-foreground">
               {i + 1}
             </div>
-            <div className="mt-3 text-sm font-bold">{s.title}</div>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{s.description}</p>
+            <div className="mt-3 text-[15px] font-bold">{s.title}</div>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{s.description}</p>
           </Card>
         ))}
       </div>
 
       <Card className="border-border/60 bg-card/40 p-4">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
-          <span className="font-semibold uppercase tracking-widest text-muted-foreground">
-            Cách tính điểm
-          </span>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px]">
+          <span className="eyebrow">Cách tính điểm</span>
           {COURSE_OVERVIEW.scoring.map((s) => (
             <span key={s.label} className="text-foreground/80">
               {s.label} = <strong className="text-gold">{s.points} điểm</strong>

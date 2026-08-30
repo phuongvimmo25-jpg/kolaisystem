@@ -144,7 +144,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col">
       {/* ── Thanh trên: logo · 3 tab dạng segmented · đồng hồ · avatar ── */}
       <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-3 px-4 md:px-6">
+        <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-2 px-4 md:gap-3 md:px-6">
           <Link to="/" className="flex shrink-0 items-center gap-2">
             <img
               src={logo}
@@ -187,17 +187,17 @@ export function AppLayout({ children }: { children: ReactNode }) {
       </header>
 
       <main className="flex-1 pb-20 md:pb-8">
-        <div className="mx-auto max-w-[1400px] px-4 py-5 md:px-6">{children}</div>
+        <div className="mx-auto max-w-[1400px] px-4 py-5 md:px-6 md:py-6">{children}</div>
       </main>
 
       {/* Thanh dưới cho điện thoại */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-sidebar/95 backdrop-blur-xl md:hidden">
-        <div className="grid grid-cols-3">
+        <div className="grid grid-cols-3 pb-[env(safe-area-inset-bottom)]">
           {NAV.map((item) => (
             <Link
               key={item.to}
               to={item.to}
-              className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition ${
+              className={`flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-semibold transition ${
                 isActive(item.to) ? "text-primary" : "text-muted-foreground"
               }`}
             >

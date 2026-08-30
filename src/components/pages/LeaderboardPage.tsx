@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
 import { ALL_LESSONS } from "@/lib/lessons";
 import leaderboardHero from "@/assets/leaderboard-hero.jpg";
@@ -21,7 +22,7 @@ interface LeaderRow {
 /** Dãy khiên vàng — mỗi khiên là một bài tập đã nộp. */
 function Shields({ count, size = "sm" }: { count: number; size?: "sm" | "md" }) {
   if (count === 0) {
-    return <span className="text-[10px] text-muted-foreground">Chưa có khiên</span>;
+    return <span className="text-[11px] text-muted-foreground">Chưa có khiên</span>;
   }
   const MAX = size === "md" ? 5 : 8;
   const shown = Math.min(count, MAX);
@@ -35,7 +36,7 @@ function Shields({ count, size = "sm" }: { count: number; size?: "sm" | "md" }) 
           className={`${cls} text-gold drop-shadow-[0_0_6px_oklch(0.78_0.16_75/0.6)]`}
         />
       ))}
-      {count > MAX && <span className="ml-0.5 text-[10px] font-bold text-gold">+{count - MAX}</span>}
+      {count > MAX && <span className="ml-0.5 text-[11px] font-bold text-gold">+{count - MAX}</span>}
     </div>
   );
 }
@@ -79,23 +80,27 @@ export function LeaderboardPage() {
         <img src={leaderboardHero} alt="KOL AI SYSTEM" className="leaderboard-hero__img" loading="eager" />
       </div>
 
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight md:text-3xl">Vinh danh</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+      <PageHeader
+        eyebrow="Bảng xếp hạng"
+        title="Vinh"
+        accent="danh"
+        description={
+          <>
             Mỗi bài tập đã nộp là một{" "}
             <span className="inline-flex items-center gap-1 font-semibold text-gold">
-              <ShieldCheck className="h-3.5 w-3.5" /> khiên vàng
+              <ShieldCheck className="h-4 w-4" /> khiên vàng
             </span>
-            .
-          </p>
-        </div>
-        {myRank > 0 && (
-          <Button onClick={share} variant="outline" size="sm">
-            <Share2 className="mr-1 h-4 w-4" /> Chia sẻ
-          </Button>
-        )}
-      </div>
+            . Nộp càng nhiều, hạng càng cao.
+          </>
+        }
+        action={
+          myRank > 0 ? (
+            <Button onClick={share} variant="outline" size="sm">
+              <Share2 className="mr-1.5 h-4 w-4" /> Chia sẻ
+            </Button>
+          ) : undefined
+        }
+      />
 
       {/* Bục vinh danh TOP 1-2-3 */}
       {top3.length > 0 && (
@@ -107,7 +112,7 @@ export function LeaderboardPage() {
       )}
 
       {loading && rows.length === 0 && (
-        <Card className="border-border bg-card/60 p-10 text-center text-sm text-muted-foreground">
+        <Card className="border-border bg-card/60 p-10 text-center text-[15px] text-muted-foreground">
           Đang tải bảng xếp hạng...
         </Card>
       )}
@@ -115,7 +120,7 @@ export function LeaderboardPage() {
       {!loading && rows.length === 0 && (
         <Card className="border-border bg-card/60 p-10 text-center">
           <div className="mb-3 text-4xl">🛡️</div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-[15px] text-muted-foreground">
             Chưa có ai trên bảng — hãy là người đầu tiên nộp bài!
           </div>
         </Card>
@@ -140,12 +145,12 @@ export function LeaderboardPage() {
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-bold text-white">{r.display_name}</div>
+              <div className="truncate text-[15px] font-bold text-white">{r.display_name}</div>
               <div className="mt-0.5 flex items-center gap-2">
                 <div className="flex items-center gap-0.5">
                   <Shields count={r.submission_count} />
                 </div>
-                <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                   <PlayCircle className="h-2.5 w-2.5" />
                   {r.watched_count}/{ALL_LESSONS.length}
                 </span>
@@ -294,7 +299,7 @@ function PodiumCard({
             TOP {rank}
           </div>
 
-          <div className="mt-2 max-w-full truncate px-1 text-sm font-black text-white drop-shadow md:text-lg">
+          <div className="mt-2.5 max-w-full truncate px-1 text-[15px] font-black text-white drop-shadow md:text-lg">
             {row.display_name}
           </div>
 

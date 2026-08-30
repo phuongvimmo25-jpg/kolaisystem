@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
 import { PARTS, ALL_LESSONS, POINTS_PER_SUBMISSION } from "@/lib/lessons";
 
@@ -130,22 +131,22 @@ export function SubmissionsPage() {
   return (
     <div className="space-y-8">
       <section>
-        <h1 className="text-2xl font-black tracking-tight md:text-3xl">
-          <span className="text-gradient-primary">Nộp bài tập</span>
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          Làm bài trên Google Docs rồi dán link vào đây. Nộp rồi vẫn sửa link được bất cứ lúc nào.
-        </p>
+        <PageHeader
+          eyebrow="Bài tập"
+          title="Nộp"
+          accent="bài tập"
+          description="Làm bài trên Google Docs rồi dán link vào đây. Nộp rồi vẫn sửa link được bất cứ lúc nào."
+        />
 
         <Card className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 border-border bg-card/60 p-4">
           <div className="inline-flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-amber-400" />
-            <span className="text-sm">
-              <strong className="text-amber-400">{doneCount}</strong>
+            <ShieldCheck className="h-5 w-5 text-gold" />
+            <span className="text-[15px]">
+              <strong className="text-gold">{doneCount}</strong>
               <span className="text-muted-foreground">/{ALL_LESSONS.length} khiên vàng</span>
             </span>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[13px] leading-relaxed text-muted-foreground">
             ⚠️ Nhớ mở quyền <strong className="text-foreground/80">“Bất kỳ ai có đường liên kết”</strong> trong
             Google Docs, nếu không người chấm sẽ không mở được bài của bạn.
           </p>
@@ -154,7 +155,7 @@ export function SubmissionsPage() {
 
       {PARTS.map((part) => (
         <section key={part.key}>
-          <h2 className="text-xl font-black tracking-tight">{part.title}</h2>
+          <h2 className="text-lg font-black md:text-xl">{part.title}</h2>
 
           <div className="mt-4 space-y-4">
             {part.lessons.map((lesson) => {
@@ -167,14 +168,14 @@ export function SubmissionsPage() {
                 <Card
                   key={lesson.key}
                   id={lesson.key}
-                  className={`scroll-mt-24 border-border p-5 ${existing ? "bg-amber-500/5 border-amber-500/25" : "bg-card/60"}`}
+                  className={`scroll-mt-24 border-border p-5 ${existing ? "border-gold/25 bg-gold/[0.06]" : "bg-card/60"}`}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span className="font-bold text-primary">Bài {lesson.code}</span>
                         {existing ? (
-                          <span className="inline-flex items-center gap-1 font-semibold text-amber-400">
+                          <span className="inline-flex items-center gap-1 font-semibold text-gold">
                             <ShieldCheck className="h-3 w-3" /> Đã nộp
                           </span>
                         ) : (
@@ -183,7 +184,7 @@ export function SubmissionsPage() {
                           </span>
                         )}
                       </div>
-                      <h3 className="mt-1 text-base font-bold leading-snug">{lesson.title}</h3>
+                      <h3 className="mt-1.5 text-[17px] font-bold leading-snug">{lesson.title}</h3>
                     </div>
 
                     {existing && (
@@ -196,15 +197,13 @@ export function SubmissionsPage() {
                   </div>
 
                   <div className="mt-3 rounded-lg border border-border/60 bg-background/40 p-3">
-                    <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                      Đề bài
-                    </div>
-                    <p className="mt-1 text-xs leading-relaxed text-foreground/85">{lesson.assignment}</p>
+                    <div className="eyebrow">Đề bài</div>
+                    <p className="mt-2 text-[15px] leading-relaxed text-foreground/90">{lesson.assignment}</p>
                   </div>
 
                   <div className="mt-4 space-y-3">
                     <div>
-                      <Label htmlFor={`url-${lesson.key}`} className="text-xs">
+                      <Label htmlFor={`url-${lesson.key}`} className="text-[13px] font-medium">
                         Link Google Docs
                       </Label>
                       <Input
@@ -217,7 +216,7 @@ export function SubmissionsPage() {
                         className="mt-1 bg-background/50"
                       />
                       {warnNotGoogle && (
-                        <p className="mt-1.5 inline-flex items-start gap-1.5 text-[11px] text-amber-400">
+                        <p className="mt-2 inline-flex items-start gap-1.5 text-xs leading-relaxed text-gold">
                           <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
                           Link này không giống Google Docs. Vẫn nộp được, nhưng kiểm tra lại cho chắc.
                         </p>
@@ -225,7 +224,7 @@ export function SubmissionsPage() {
                     </div>
 
                     <div>
-                      <Label htmlFor={`note-${lesson.key}`} className="text-xs">
+                      <Label htmlFor={`note-${lesson.key}`} className="text-[13px] font-medium">
                         Ghi chú <span className="text-muted-foreground">(không bắt buộc)</span>
                       </Label>
                       <Textarea
@@ -263,7 +262,7 @@ export function SubmissionsPage() {
                     )}
 
                     {existing && !dirty && (
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         Nộp lúc {new Date(existing.updated_at).toLocaleString("vi-VN")}
                       </span>
                     )}
