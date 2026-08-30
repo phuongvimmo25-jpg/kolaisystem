@@ -62,17 +62,14 @@ export function ReviewPending({
   reviewer?: ReviewerInfo;
 }) {
   return (
-    <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-border/60 bg-background/40 p-3">
+    <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-border/60 bg-background/40 px-3 py-2.5">
       <Avatar reviewer={reviewer} />
-      <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-bold text-muted-foreground">{reviewer.name}</div>
-        <p className="mt-0.5 inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
-          <Clock3 className="h-3.5 w-3.5" />
-          {minutesLeft > 0
-            ? `Sẽ phản hồi sau khoảng ${minutesLeft} phút nữa`
-            : "Đang xem bài của bạn..."}
-        </p>
-      </div>
+      <p className="inline-flex min-w-0 flex-1 items-center gap-1.5 text-[13px] text-muted-foreground">
+        <Clock3 className="h-3.5 w-3.5 shrink-0" />
+        {minutesLeft > 0
+          ? `Sẽ phản hồi sau khoảng ${minutesLeft} phút nữa`
+          : "Đang xem bài của bạn..."}
+      </p>
     </div>
   );
 }
@@ -80,15 +77,12 @@ export function ReviewPending({
 /** Đang gọi AI chấm. */
 export function ReviewLoading({ reviewer = DEFAULT_REVIEWER }: { reviewer?: ReviewerInfo }) {
   return (
-    <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-border/60 bg-background/40 p-3">
+    <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-border/60 bg-background/40 px-3 py-2.5">
       <Avatar reviewer={reviewer} />
-      <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-bold text-muted-foreground">{reviewer.name}</div>
-        <p className="mt-0.5 inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          Đang đọc bài của bạn...
-        </p>
-      </div>
+      <p className="inline-flex min-w-0 flex-1 items-center gap-1.5 text-[13px] text-muted-foreground">
+        <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+        Đang đọc bài của bạn...
+      </p>
     </div>
   );
 }
@@ -153,14 +147,9 @@ export function AdminReviewSlot({
   return (
     <div className="mt-2 flex items-center gap-2.5 rounded-xl border border-dashed border-border/70 bg-background/30 p-3">
       <Avatar reviewer={reviewer} />
-      <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-bold text-muted-foreground">
-          Đánh giá trực tiếp của {reviewer.name}
-        </div>
-        <p className="mt-0.5 text-[13px] text-muted-foreground/80">
-          {isAdmin ? "Bạn chưa chấm bài này." : "Sẽ có sau khi Phong xem lại bài của bạn."}
-        </p>
-      </div>
+      <p className="min-w-0 flex-1 text-[13px] text-muted-foreground">
+        {isAdmin ? "Bạn chưa chấm bài này." : "Đánh giá trực tiếp sẽ có sau."}
+      </p>
       {isAdmin && onEdit && (
         <button
           onClick={onEdit}
