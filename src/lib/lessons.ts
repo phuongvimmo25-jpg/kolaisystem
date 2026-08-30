@@ -83,7 +83,7 @@ export const PARTS: Part[] = [
           "Ba khái niệm nền tảng của hệ thống AI hiện đại: Skill là gì, MCP kết nối những gì, và Sub-Agent hoạt động ra sao.",
         youtubeId: "jYKzQePWbO8",
         assignment:
-          "Viết lại bằng lời của bạn: Skill, MCP và Sub-Agent là gì, mỗi cái dùng để làm gì. Nêu 1 ví dụ bạn có thể áp dụng vào công việc của mình.",
+          "Hiểu được Skill là gì và nó hoạt động như thế nào với AI Agent.",
       },
       {
         key: "p1-b2",
@@ -93,8 +93,7 @@ export const PARTS: Part[] = [
           "Phân biệt ChatGPT, chế độ Work và Codex — cái nào dùng khi nào, mạnh yếu ở đâu.",
         youtubeId: "tCrqO_1YXTU",
         duration: "16 phút",
-        assignment:
-          "Lập bảng so sánh ChatGPT, Work và Codex theo 3 cột: dùng khi nào, điểm mạnh, điểm yếu. Kết luận bạn sẽ dùng cái nào cho công việc chính của mình.",
+        assignment: "Tải được ChatGPT Codex về máy.",
       },
       {
         key: "p1-b3",
@@ -104,7 +103,7 @@ export const PARTS: Part[] = [
           "Đăng ký tài khoản ChatGPT Plus, cài app Codex về máy, và cách dùng sao cho không đốt token.",
         youtubeId: "Is-Z7yFm6qc",
         assignment:
-          "Chụp màn hình chứng minh bạn đã cài xong và chạy được Codex trên máy. Ghi lại lỗi bạn gặp và cách khắc phục (nếu có).",
+          "Làm quen được toàn bộ giao diện từ web tới app và có thể thao tác như một chuyên gia.",
       },
     ],
   },

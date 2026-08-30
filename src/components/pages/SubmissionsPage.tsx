@@ -144,17 +144,17 @@ export function SubmissionsPage() {
               }
             >
               {/* Dòng 1 — số bài · tên bài · trạng thái */}
-              <div className="mb-2 flex items-center gap-2">
+              <div className="mb-2 flex items-start gap-2">
                 <span
                   className={
-                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-black " +
+                    "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-black " +
                     (existing ? "bg-gold/20 text-gold" : "bg-primary/15 text-primary")
                   }
                 >
                   {idx + 1}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-sm font-semibold">
-                  {lesson.title}
+                <span className="min-w-0 flex-1 text-sm font-semibold leading-snug">
+                  {lesson.assignment}
                 </span>
                 {existing ? (
                   <a
@@ -162,12 +162,12 @@ export function SubmissionsPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Mở bài đã nộp"
-                    className="shrink-0 text-gold transition hover:opacity-70"
+                    className="mt-0.5 shrink-0 text-gold transition hover:opacity-70"
                   >
                     <ExternalLink className="h-4 w-4" />
                   </a>
                 ) : (
-                  <CircleDashed className="h-4 w-4 shrink-0 text-muted-foreground/50" />
+                  <CircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/50" />
                 )}
               </div>
 
