@@ -277,7 +277,12 @@ export function SubmissionsPage() {
   };
 
   const submittedKeys = new Set(Object.keys(subs));
-  const done = DAYS.filter((d) => subs[d.key]).length;
+  // Đã nộp = có dòng. Có khiên = đã chấm xong và không lỗi.
+  const submitted = DAYS.filter((d) => subs[d.key]).length;
+  const done = DAYS.filter((d) => {
+    const r = subs[d.key];
+    return r && r.graded_at && !r.grade_error && r.ai_feedback;
+  }).length;
 
   return (
     <div className="mx-auto max-w-[820px]">
@@ -287,12 +292,21 @@ export function SubmissionsPage() {
         accent="bài tập"
         description="Mỗi ngày một bài tập. Dán link Google Docs, nộp rồi vẫn sửa được."
         action={
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5">
-            <ShieldCheck className="h-4 w-4 text-gold" />
-            <span className="text-sm font-bold text-gold">
-              {done}
-              <span className="font-medium text-gold/60">/{DAYS.length}</span>
-            </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1.5">
+              <Check className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-bold text-foreground/80">
+                {submitted}
+                <span className="font-medium text-muted-foreground">/{DAYS.length} đã nộp</span>
+              </span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5">
+              <ShieldCheck className="h-4 w-4 text-gold" />
+              <span className="text-sm font-bold text-gold">
+                {done}
+                <span className="font-medium text-gold/60">/{DAYS.length} khiên</span>
+              </span>
+            </div>
           </div>
         }
       />

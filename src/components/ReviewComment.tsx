@@ -1,4 +1,4 @@
-import { Clock3, Loader2, AlertTriangle } from "lucide-react";
+import { Clock3, Loader2, AlertTriangle, ShieldCheck } from "lucide-react";
 import fallbackPhoto from "@/assets/logo.png";
 
 export interface ReviewerInfo {
@@ -48,6 +48,11 @@ export function ReviewComment({
           )}
         </div>
         <p className="mt-1 text-[14px] leading-relaxed text-foreground/90">{feedback}</p>
+        {!fromAdmin && (
+          <p className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-gold/80">
+            <ShieldCheck className="h-3 w-3" /> Đã nhận 1 khiên vàng
+          </p>
+        )}
       </div>
     </div>
   );
@@ -93,7 +98,9 @@ export function ReviewError({ message, onRetry }: { message: string; onRetry?: (
     <div className="mt-3 flex gap-2.5 rounded-xl border border-red-500/30 bg-red-500/[0.06] p-3">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
       <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-bold text-red-300">Chưa chấm được bài này</div>
+        <div className="text-[13px] font-bold text-red-300">
+          Chưa mở được bài — chưa được tính khiên
+        </div>
         <p className="mt-0.5 text-[13px] leading-relaxed text-red-200/80">{message}</p>
         {onRetry && (
           <button
