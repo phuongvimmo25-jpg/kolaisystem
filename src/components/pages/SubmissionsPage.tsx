@@ -157,7 +157,7 @@ export function SubmissionsPage() {
           <h2 className="text-xl font-black tracking-tight">{part.title}</h2>
 
           <div className="mt-4 space-y-4">
-            {part.lessons.map((lesson, idx) => {
+            {part.lessons.map((lesson) => {
               const existing = subs[lesson.key];
               const draft = draftOf(lesson.key);
               const dirty = existing ? draft.url !== existing.doc_url || draft.note !== (existing.note ?? "") : !!draft.url;
@@ -172,7 +172,7 @@ export function SubmissionsPage() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                        <span className="font-bold text-primary">Bài {idx + 1}</span>
+                        <span className="font-bold text-primary">Bài {lesson.code}</span>
                         {existing ? (
                           <span className="inline-flex items-center gap-1 font-semibold text-amber-400">
                             <ShieldCheck className="h-3 w-3" /> Đã nộp

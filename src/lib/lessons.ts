@@ -10,11 +10,14 @@
 export interface Lesson {
   /** Khoá định danh — ĐỪNG đổi sau khi học viên đã nộp bài, sẽ mất liên kết bài nộp. */
   key: string;
+  /** Số hiệu hiển thị, ví dụ "1.1". */
+  code: string;
   title: string;
   description: string;
   /** Mã video YouTube. Để trống nếu chưa có. */
   youtubeId: string;
-  duration: string;
+  /** Thời lượng, để trống nếu chưa biết. */
+  duration?: string;
   /** Đề bài học viên phải làm và nộp qua Google Docs. */
   assignment: string;
 }
@@ -57,38 +60,39 @@ export const COURSE_OVERVIEW = {
 export const PARTS: Part[] = [
   {
     key: "phan-1",
-    title: "Phần 1 — Nền tảng",
-    subtitle: "Dựng nền móng trước khi chạy: tư duy, hồ sơ, và sản phẩm đầu tiên.",
+    title: "Phần 1 — Nền tảng công cụ AI",
+    subtitle: "Hiểu bộ công cụ trước khi bắt tay làm: Skill, MCP, Sub-Agent, ChatGPT và Codex.",
     lessons: [
       {
         key: "p1-b1",
-        title: "Bài 1 — Tư duy của chiến thần",
+        code: "1.1",
+        title: "Hiểu tổng quan về Skill · MCP · Sub-Agent",
         description:
-          "Vì sao phần lớn người làm affiliate bỏ cuộc trong 30 ngày đầu, và tư duy nào giúp bạn đi tiếp.",
-        youtubeId: "",
-        duration: "12 phút",
+          "Ba khái niệm nền tảng của hệ thống AI hiện đại: Skill là gì, MCP kết nối những gì, và Sub-Agent hoạt động ra sao.",
+        youtubeId: "jYKzQePWbO8",
         assignment:
-          "Viết ra 3 lý do bạn bắt đầu, và 3 điều bạn sẵn sàng đánh đổi trong 30 ngày tới. Nộp bản Google Docs.",
+          "Viết lại bằng lời của bạn: Skill, MCP và Sub-Agent là gì, mỗi cái dùng để làm gì. Nêu 1 ví dụ bạn có thể áp dụng vào công việc của mình.",
       },
       {
         key: "p1-b2",
-        title: "Bài 2 — Dựng hồ sơ cá nhân",
+        code: "1.2",
+        title: "Hiểu tất tần tật về ChatGPT · Work · Codex",
         description:
-          "Cách viết bio, chọn ảnh đại diện và định vị bản thân để người lạ tin bạn ngay trong 5 giây.",
-        youtubeId: "",
-        duration: "15 phút",
+          "Phân biệt ChatGPT, chế độ Work và Codex — cái nào dùng khi nào, mạnh yếu ở đâu.",
+        youtubeId: "tCrqO_1YXTU",
+        duration: "16 phút",
         assignment:
-          "Viết lại bio của bạn theo công thức trong bài. Chụp màn hình hồ sơ trước và sau, dán vào Google Docs.",
+          "Lập bảng so sánh ChatGPT, Work và Codex theo 3 cột: dùng khi nào, điểm mạnh, điểm yếu. Kết luận bạn sẽ dùng cái nào cho công việc chính của mình.",
       },
       {
         key: "p1-b3",
-        title: "Bài 3 — Chọn sản phẩm đầu tiên",
+        code: "1.3",
+        title: "Hướng dẫn cài ChatGPT · Tạo tài khoản · Tải Codex về máy",
         description:
-          "Tiêu chí chọn sản phẩm dễ bán, hoa hồng tốt, và hợp với tệp khán giả bạn đang có.",
+          "Làm theo từng bước: tạo tài khoản, cài đặt và chạy được Codex trên máy của bạn.",
         youtubeId: "",
-        duration: "18 phút",
         assignment:
-          "Chọn 3 sản phẩm, chấm điểm từng sản phẩm theo bảng tiêu chí trong bài, kết luận chọn cái nào và vì sao.",
+          "Chụp màn hình chứng minh bạn đã cài xong và chạy được Codex trên máy. Ghi lại lỗi bạn gặp và cách khắc phục (nếu có).",
       },
     ],
   },

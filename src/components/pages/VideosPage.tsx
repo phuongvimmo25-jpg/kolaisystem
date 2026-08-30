@@ -156,7 +156,7 @@ export function VideosPage() {
           <p className="mt-1 text-sm text-muted-foreground">{part.subtitle}</p>
 
           <div className="mt-4 space-y-4">
-            {part.lessons.map((lesson, idx) => {
+            {part.lessons.map((lesson) => {
               const isWatched = watched.has(lesson.key);
               const isSubmitted = submitted.has(lesson.key);
               const hasVideo = lesson.youtubeId.trim() !== "";
@@ -183,11 +183,15 @@ export function VideosPage() {
 
                     <div className="p-5">
                       <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                        <span className="font-bold text-primary">Bài {idx + 1}</span>
-                        <span>•</span>
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> {lesson.duration}
-                        </span>
+                        <span className="font-bold text-primary">Bài {lesson.code}</span>
+                        {lesson.duration && (
+                          <>
+                            <span>•</span>
+                            <span className="inline-flex items-center gap-1">
+                              <Clock className="h-3 w-3" /> {lesson.duration}
+                            </span>
+                          </>
+                        )}
                         {isWatched && (
                           <>
                             <span>•</span>

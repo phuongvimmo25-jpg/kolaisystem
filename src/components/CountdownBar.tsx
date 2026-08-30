@@ -81,7 +81,7 @@ export function CountdownBar() {
     return (
       <Pill tone="done">
         <Check className="h-3 w-3 shrink-0" />
-        <span>Đã nộp bài {info.index + 1}</span>
+        <span>Đã nộp bài {info.lesson.code}</span>
         <span className="opacity-40">·</span>
         <span className="font-mono tabular-nums opacity-80">{clock}</span>
       </Pill>
@@ -92,7 +92,7 @@ export function CountdownBar() {
     <Link to="/bai-tap" hash={info.lesson.key}>
       <Pill tone={urgent ? "urgent" : "normal"} interactive>
         <Clock3 className="h-3 w-3 shrink-0" />
-        <span>Hạn bài {info.index + 1}</span>
+        <span>Hạn bài {info.lesson.code}</span>
         <span className="opacity-40">·</span>
         <span className="font-mono font-semibold tabular-nums">{clock}</span>
       </Pill>
