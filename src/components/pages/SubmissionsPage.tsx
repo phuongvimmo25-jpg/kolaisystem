@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { ShieldCheck, ExternalLink, Save, Trash2, CircleDashed, AlertTriangle } from "lucide-react";
+import { ShieldCheck, ExternalLink, Check, X, CircleDashed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
 import { PARTS, ALL_LESSONS, POINTS_PER_SUBMISSION } from "@/lib/lessons";
@@ -14,13 +12,6 @@ import { PARTS, ALL_LESSONS, POINTS_PER_SUBMISSION } from "@/lib/lessons";
 interface Submission {
   lesson_key: string;
   doc_url: string;
-  note: string | null;
-  updated_at: string;
-}
-
-/** Cảnh báo mềm: link không giống Google Docs thì nhắc, nhưng vẫn cho nộp. */
-function looksLikeGoogleDoc(url: string) {
-  return /docs\.google\.com|drive\.google\.com/i.test(url);
 }
 
 function isValidUrl(url: string) {
@@ -35,48 +26,40 @@ function isValidUrl(url: string) {
 export function SubmissionsPage() {
   const { user } = useAuth();
   const [subs, setSubs] = useState<Record<string, Submission>>({});
-  const [drafts, setDrafts] = useState<Record<string, { url: string; note: string }>>({});
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
       .from("submissions")
-      .select("lesson_key, doc_url, note, updated_at")
+      .select("lesson_key, doc_url")
       .eq("user_id", user.id);
 
     const map: Record<string, Submission> = {};
-    const d: Record<string, { url: string; note: string }> = {};
+    const d: Record<string, string> = {};
     for (const row of data ?? []) {
       map[row.lesson_key] = row as Submission;
-      d[row.lesson_key] = { url: row.doc_url, note: row.note ?? "" };
+      d[row.lesson_key] = row.doc_url;
     }
     setSubs(map);
     setDrafts((prev) => ({ ...d, ...prev }));
-    setLoading(false);
   }, [user]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const draftOf = (key: string) => drafts[key] ?? { url: "", note: "" };
-
-  const setDraft = (key: string, patch: Partial<{ url: string; note: string }>) =>
-    setDrafts((prev) => ({ ...prev, [key]: { ...draftOf(key), ...patch } }));
-
   const save = async (lessonKey: string) => {
     if (!user) return;
-    const { url, note } = draftOf(lessonKey);
-    const trimmed = url.trim();
+    const url = (drafts[lessonKey] ?? "").trim();
 
-    if (!trimmed) {
-      toast.error("Chưa có link", { description: "Dán link Google Docs bài làm của bạn vào ô trên." });
+    if (!url) {
+      toast.error("Chưa có link");
       return;
     }
-    if (!isValidUrl(trimmed)) {
-      toast.error("Link không hợp lệ", { description: "Link phải bắt đầu bằng http:// hoặc https://" });
+    if (!isValidUrl(url)) {
+      toast.error("Link không hợp lệ", { description: "Phải bắt đầu bằng https://" });
       return;
     }
 
@@ -85,8 +68,7 @@ export function SubmissionsPage() {
       {
         user_id: user.id,
         lesson_key: lessonKey,
-        doc_url: trimmed,
-        note: note.trim() || null,
+        doc_url: url,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "user_id,lesson_key" },
@@ -98,12 +80,9 @@ export function SubmissionsPage() {
       return;
     }
 
-    const isNew = !subs[lessonKey];
-    toast.success(isNew ? "Nộp bài thành công!" : "Đã cập nhật link", {
-      description: isNew
-        ? "+" + POINTS_PER_SUBMISSION + " điểm — bạn nhận thêm 1 khiên vàng ở Vinh danh."
-        : "Link mới đã được lưu.",
-    });
+    toast.success(
+      subs[lessonKey] ? "Đã cập nhật link" : "Nộp bài thành công! +" + POINTS_PER_SUBMISSION + " điểm",
+    );
     load();
   };
 
@@ -121,160 +100,129 @@ export function SubmissionsPage() {
       toast.error("Không xoá được", { description: error.message });
       return;
     }
-    setDrafts((prev) => ({ ...prev, [lessonKey]: { url: "", note: "" } }));
-    toast.success("Đã xoá bài nộp", { description: "Bạn mất 1 khiên vàng cho bài này." });
+    setDrafts((prev) => ({ ...prev, [lessonKey]: "" }));
+    toast.success("Đã xoá bài nộp");
     load();
   };
 
-  const doneCount = ALL_LESSONS.filter((l) => subs[l.key]).length;
+  const done = ALL_LESSONS.filter((l) => subs[l.key]).length;
 
   return (
-    <div className="space-y-8">
-      <section>
-        <PageHeader
-          eyebrow="Bài tập"
-          title="Nộp"
-          accent="bài tập"
-          description="Làm bài trên Google Docs rồi dán link vào đây. Nộp rồi vẫn sửa link được bất cứ lúc nào."
-        />
-
-        <Card className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 border-border bg-card/60 p-4">
-          <div className="inline-flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-gold" />
-            <span className="text-[15px]">
-              <strong className="text-gold">{doneCount}</strong>
-              <span className="text-muted-foreground">/{ALL_LESSONS.length} khiên vàng</span>
+    <div className="mx-auto max-w-[820px]">
+      <PageHeader
+        eyebrow="Bài tập"
+        title="Nộp"
+        accent="bài tập"
+        description="Dán link Google Docs bài làm. Nộp rồi vẫn sửa được."
+        action={
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5">
+            <ShieldCheck className="h-4 w-4 text-gold" />
+            <span className="text-sm font-bold text-gold">
+              {done}
+              <span className="font-medium text-gold/60">/{ALL_LESSONS.length}</span>
             </span>
           </div>
-          <p className="text-[13px] leading-relaxed text-muted-foreground">
-            ⚠️ Nhớ mở quyền <strong className="text-foreground/80">“Bất kỳ ai có đường liên kết”</strong> trong
-            Google Docs, nếu không người chấm sẽ không mở được bài của bạn.
-          </p>
-        </Card>
-      </section>
+        }
+      />
 
-      {PARTS.map((part) => (
-        <section key={part.key}>
-          <h2 className="text-lg font-black md:text-xl">{part.title}</h2>
+      <div className="space-y-5">
+        {PARTS.map((part) => (
+          <section key={part.key}>
+            <h2 className="eyebrow mb-2">{part.title}</h2>
 
-          <div className="mt-4 space-y-4">
-            {part.lessons.map((lesson) => {
-              const existing = subs[lesson.key];
-              const draft = draftOf(lesson.key);
-              const dirty = existing ? draft.url !== existing.doc_url || draft.note !== (existing.note ?? "") : !!draft.url;
-              const warnNotGoogle = draft.url.trim() !== "" && !looksLikeGoogleDoc(draft.url);
+            <div className="space-y-2">
+              {part.lessons.map((lesson) => {
+                const existing = subs[lesson.key];
+                const draft = drafts[lesson.key] ?? "";
+                const dirty = draft.trim() !== (existing?.doc_url ?? "");
+                const working = busy === lesson.key;
 
-              return (
-                <Card
-                  key={lesson.key}
-                  id={lesson.key}
-                  className={`scroll-mt-24 border-border p-5 ${existing ? "border-gold/25 bg-gold/[0.06]" : "bg-card/60"}`}
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className="font-bold text-primary">Bài {lesson.code}</span>
-                        {existing ? (
-                          <span className="inline-flex items-center gap-1 font-semibold text-gold">
-                            <ShieldCheck className="h-3 w-3" /> Đã nộp
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1">
-                            <CircleDashed className="h-3 w-3" /> Chưa nộp
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="mt-1.5 text-[17px] font-bold leading-snug">{lesson.title}</h3>
-                    </div>
-
-                    {existing && (
-                      <Button size="sm" variant="ghost" asChild>
-                        <a href={existing.doc_url} target="_blank" rel="noopener noreferrer">
-                          Mở bài đã nộp <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
+                return (
+                  <Card
+                    key={lesson.key}
+                    id={lesson.key}
+                    className={
+                      "scroll-mt-20 p-3 transition-colors " +
+                      (existing ? "border-gold/25 bg-gold/[0.05]" : "border-border/70 bg-card/50")
+                    }
+                  >
+                    {/* Dòng 1 — mã bài · tên bài · trạng thái */}
+                    <div className="mb-2 flex items-center gap-2">
+                      <span
+                        className={
+                          "shrink-0 rounded-md px-1.5 py-0.5 text-xs font-bold " +
+                          (existing ? "bg-gold/20 text-gold" : "bg-primary/15 text-primary")
+                        }
+                      >
+                        {lesson.code}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-sm font-semibold">
+                        {lesson.title}
+                      </span>
+                      {existing ? (
+                        <a
+                          href={existing.doc_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Mở bài đã nộp"
+                          className="shrink-0 text-gold transition hover:opacity-70"
+                        >
+                          <ExternalLink className="h-4 w-4" />
                         </a>
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="mt-3 rounded-lg border border-border/60 bg-background/40 p-3">
-                    <div className="eyebrow">Đề bài</div>
-                    <p className="mt-2 text-[15px] leading-relaxed text-foreground/90">{lesson.assignment}</p>
-                  </div>
-
-                  <div className="mt-4 space-y-3">
-                    <div>
-                      <Label htmlFor={`url-${lesson.key}`} className="text-[13px] font-medium">
-                        Link Google Docs
-                      </Label>
-                      <Input
-                        id={`url-${lesson.key}`}
-                        type="url"
-                        inputMode="url"
-                        placeholder="https://docs.google.com/document/d/..."
-                        value={draft.url}
-                        onChange={(e) => setDraft(lesson.key, { url: e.target.value })}
-                        className="mt-1 bg-background/50"
-                      />
-                      {warnNotGoogle && (
-                        <p className="mt-2 inline-flex items-start gap-1.5 text-xs leading-relaxed text-gold">
-                          <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
-                          Link này không giống Google Docs. Vẫn nộp được, nhưng kiểm tra lại cho chắc.
-                        </p>
+                      ) : (
+                        <CircleDashed className="h-4 w-4 shrink-0 text-muted-foreground/50" />
                       )}
                     </div>
 
-                    <div>
-                      <Label htmlFor={`note-${lesson.key}`} className="text-[13px] font-medium">
-                        Ghi chú <span className="text-muted-foreground">(không bắt buộc)</span>
-                      </Label>
-                      <Textarea
-                        id={`note-${lesson.key}`}
-                        rows={2}
-                        placeholder="Điều bạn muốn người chấm lưu ý..."
-                        value={draft.note}
-                        onChange={(e) => setDraft(lesson.key, { note: e.target.value })}
-                        className="mt-1 resize-none bg-background/50"
+                    {/* Dòng 2 — ô link + nút */}
+                    <div className="flex gap-2">
+                      <Input
+                        type="url"
+                        inputMode="url"
+                        placeholder="https://docs.google.com/..."
+                        value={draft}
+                        onChange={(e) =>
+                          setDrafts((prev) => ({ ...prev, [lesson.key]: e.target.value }))
+                        }
+                        onKeyDown={(e) => e.key === "Enter" && dirty && save(lesson.key)}
+                        className="h-9 flex-1 bg-background/60 text-sm"
                       />
-                    </div>
-                  </div>
 
-                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => save(lesson.key)}
-                      disabled={busy === lesson.key || (!dirty && !!existing)}
-                      className="bg-gradient-primary hover:opacity-90"
-                    >
-                      <Save className="mr-1.5 h-4 w-4" />
-                      {busy === lesson.key ? "Đang lưu..." : existing ? "Cập nhật link" : "Nộp bài"}
-                    </Button>
-
-                    {existing && (
                       <Button
                         size="sm"
-                        variant="ghost"
-                        onClick={() => remove(lesson.key)}
-                        disabled={busy === lesson.key}
-                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => save(lesson.key)}
+                        disabled={working || !dirty}
+                        className="h-9 shrink-0 bg-gradient-primary px-3 hover:opacity-90"
                       >
-                        <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Xoá bài nộp
+                        <Check className="h-4 w-4" />
+                        <span className="ml-1 hidden sm:inline">{existing ? "Cập nhật" : "Nộp"}</span>
                       </Button>
-                    )}
 
-                    {existing && !dirty && (
-                      <span className="text-xs text-muted-foreground">
-                        Nộp lúc {new Date(existing.updated_at).toLocaleString("vi-VN")}
-                      </span>
-                    )}
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </section>
-      ))}
+                      {existing && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => remove(lesson.key)}
+                          disabled={working}
+                          title="Xoá bài nộp"
+                          className="h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
 
-      {loading && <p className="text-center text-xs text-muted-foreground">Đang tải bài nộp...</p>}
+      <p className="mt-5 text-center text-xs leading-relaxed text-muted-foreground">
+        Nhớ mở quyền <strong className="text-foreground/70">“Bất kỳ ai có đường liên kết”</strong> trong
+        Google Docs.
+      </p>
     </div>
   );
 }

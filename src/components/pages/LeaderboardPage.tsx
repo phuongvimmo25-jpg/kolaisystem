@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
 import { ALL_LESSONS } from "@/lib/lessons";
 import leaderboardHero from "@/assets/leaderboard-hero.jpg";
@@ -74,37 +73,39 @@ export function LeaderboardPage() {
   };
 
   return (
-    <div className="space-y-5">
-      {/* Ảnh bìa */}
-      <div className="leaderboard-hero aspect-[16/7] md:aspect-[16/6]">
-        <img src={leaderboardHero} alt="KOL AI SYSTEM" className="leaderboard-hero__img" loading="eager" />
-      </div>
+    <div className="space-y-4">
+      {/* Ảnh bìa mỏng, tiêu đề đè lên để nhường chỗ cho bục vinh danh */}
+      <div className="leaderboard-hero leaderboard-hero--slim h-[88px] md:h-[112px]">
+        <img src={leaderboardHero} alt="" className="leaderboard-hero__img" loading="eager" />
+        <div className="relative z-[2] flex h-full items-center justify-between gap-3 px-4 md:px-6">
+          <div className="min-w-0">
+            <div className="eyebrow">Bảng xếp hạng</div>
+            <h1 className="mt-0.5 text-[22px] font-black leading-none md:text-[28px]">
+              <span className="text-foreground">Vinh</span>
+              <span className="text-gradient-primary"> danh</span>
+            </h1>
+            <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
+              <ShieldCheck className="h-3.5 w-3.5 text-gold" />
+              1 bài nộp = 1 khiên vàng
+            </p>
+          </div>
 
-      <PageHeader
-        eyebrow="Bảng xếp hạng"
-        title="Vinh"
-        accent="danh"
-        description={
-          <>
-            Mỗi bài tập đã nộp là một{" "}
-            <span className="inline-flex items-center gap-1 font-semibold text-gold">
-              <ShieldCheck className="h-4 w-4" /> khiên vàng
-            </span>
-            . Nộp càng nhiều, hạng càng cao.
-          </>
-        }
-        action={
-          myRank > 0 ? (
-            <Button onClick={share} variant="outline" size="sm">
-              <Share2 className="mr-1.5 h-4 w-4" /> Chia sẻ
-            </Button>
-          ) : undefined
-        }
-      />
+          {myRank > 0 && (
+            <div className="flex shrink-0 flex-col items-end gap-1.5">
+              <div className="rounded-full border border-primary/35 bg-primary/15 px-2.5 py-1 text-xs font-bold">
+                Hạng <span className="text-gradient-primary">#{myRank}</span>
+              </div>
+              <Button onClick={share} variant="outline" size="sm" className="h-7 px-2 text-xs">
+                <Share2 className="mr-1 h-3.5 w-3.5" /> Chia sẻ
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Bục vinh danh TOP 1-2-3 */}
       {top3.length > 0 && (
-        <div className="grid grid-cols-3 items-end gap-3 md:gap-5">
+        <div className="grid grid-cols-3 items-end gap-2 pt-2 sm:gap-3 md:gap-5 md:pt-4">
           <PodiumCard row={top3[1]} rank={2} variant="purple" />
           <PodiumCard row={top3[0]} rank={1} variant="gold" featured />
           <PodiumCard row={top3[2]} rank={3} variant="ruby" />
@@ -217,7 +218,7 @@ function PodiumCard({
   const romanText = " ✦ I ✦ II ✦ III ✦ IV ✦ V ✦ VI ✦ VII ✦ VIII ✦ IX ✦ X ✦ XI ✦ XII ✦ ";
 
   return (
-    <div className={`relative ${featured ? "md:-mt-8" : ""}`}>
+    <div className={`relative ${featured ? "-mt-3 md:-mt-8" : ""}`}>
       <div className={`legend-frame ${cfg.frame} ${cfg.bg} backdrop-blur-sm`}>
         <div className="legend-shine" />
 
@@ -231,7 +232,7 @@ function PodiumCard({
         <div className="relative flex flex-col items-center text-center">
           <div
             className={`relative ${
-              featured ? "h-32 w-32 md:h-44 md:w-44" : "h-24 w-24 md:h-32 md:w-32"
+              featured ? "h-24 w-24 sm:h-32 sm:w-32 md:h-44 md:w-44" : "h-[72px] w-[72px] sm:h-24 sm:w-24 md:h-32 md:w-32"
             } flex items-center justify-center`}
           >
             <div className={`fire-ring ${cfg.fire}`} />

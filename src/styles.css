@@ -416,6 +416,21 @@
   pointer-events: none;
 }
 
+/* Biến thể bìa mỏng — chữ đè lên trên, cần nền tối bên trái để đọc được */
+.leaderboard-hero--slim .leaderboard-hero__img {
+  object-position: right center;
+  -webkit-mask-image: none;
+          mask-image: none;
+  opacity: 0.55;
+}
+.leaderboard-hero--slim::after {
+  background:
+    linear-gradient(90deg,
+      oklch(0.08 0.015 280 / 0.94) 0%,
+      oklch(0.08 0.015 280 / 0.82) 45%,
+      oklch(0.08 0.015 280 / 0.35) 100%);
+}
+
 /* === HERO COVER — bìa Dashboard, lấy cảm hứng đen + vàng gold === */
 .hero-cover {
   position: relative;
