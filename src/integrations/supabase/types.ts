@@ -163,8 +163,15 @@ export type Database = {
       }
       submissions: {
         Row: {
+          admin_at: string | null
+          admin_feedback: string | null
+          admin_score: number | null
+          ai_feedback: string | null
+          ai_score: number | null
           created_at: string
           doc_url: string
+          grade_error: string | null
+          graded_at: string | null
           id: string
           lesson_key: string
           note: string | null
@@ -172,8 +179,15 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_at?: string | null
+          admin_feedback?: string | null
+          admin_score?: number | null
+          ai_feedback?: string | null
+          ai_score?: number | null
           created_at?: string
           doc_url: string
+          grade_error?: string | null
+          graded_at?: string | null
           id?: string
           lesson_key: string
           note?: string | null
@@ -181,8 +195,15 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_at?: string | null
+          admin_feedback?: string | null
+          admin_score?: number | null
+          ai_feedback?: string | null
+          ai_score?: number | null
           created_at?: string
           doc_url?: string
+          grade_error?: string | null
+          graded_at?: string | null
           id?: string
           lesson_key?: string
           note?: string | null

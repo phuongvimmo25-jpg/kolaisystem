@@ -8,10 +8,26 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
 import { ALL_LESSONS, POINTS_PER_SUBMISSION } from "@/lib/lessons";
+import { GRADING_DELAY_MS } from "@/lib/grading";
+import { gradeSubmission } from "@/fn/gradeSubmission";
+import { useReviewer } from "@/hooks/useReviewer";
+import {
+  ReviewComment,
+  ReviewPending,
+  ReviewLoading,
+  ReviewError,
+} from "@/components/ReviewComment";
 
 interface Submission {
   lesson_key: string;
   doc_url: string;
+  updated_at: string;
+  ai_score: number | null;
+  ai_feedback: string | null;
+  graded_at: string | null;
+  grade_error: string | null;
+  admin_score: number | null;
+  admin_feedback: string | null;
 }
 
 function isValidUrl(url: string) {
@@ -28,12 +44,17 @@ export function SubmissionsPage() {
   const [subs, setSubs] = useState<Record<string, Submission>>({});
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [grading, setGrading] = useState<Set<string>>(new Set());
+  const [now, setNow] = useState(() => Date.now());
+  const reviewerProfile = useReviewer();
 
   const load = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
       .from("submissions")
-      .select("lesson_key, doc_url")
+      .select(
+        "lesson_key, doc_url, updated_at, ai_score, ai_feedback, graded_at, grade_error, admin_score, admin_feedback",
+      )
       .eq("user_id", user.id);
 
     const map: Record<string, Submission> = {};
@@ -49,6 +70,39 @@ export function SubmissionsPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Nhịp 20 giây để đếm ngược tới lúc Phong phản hồi
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 20_000);
+    return () => clearInterval(id);
+  }, []);
+
+  /** Bài đã nộp quá 5 phút mà chưa chấm thì gọi chấm. */
+  useEffect(() => {
+    const due = Object.values(subs).filter(
+      (r) =>
+        !r.graded_at &&
+        !grading.has(r.lesson_key) &&
+        now - new Date(r.updated_at).getTime() >= GRADING_DELAY_MS,
+    );
+    if (due.length === 0) return;
+
+    for (const row of due) {
+      setGrading((prev) => new Set(prev).add(row.lesson_key));
+      gradeSubmission({ data: { lessonKey: row.lesson_key } })
+        .then(() => load())
+        .catch(() => {
+          /* lỗi mạng — lần tải trang sau sẽ thử lại */
+        })
+        .finally(() =>
+          setGrading((prev) => {
+            const n = new Set(prev);
+            n.delete(row.lesson_key);
+            return n;
+          }),
+        );
+    }
+  }, [subs, now, grading, load]);
 
   const save = async (lessonKey: string) => {
     if (!user) return;
@@ -206,6 +260,19 @@ export function SubmissionsPage() {
                   </Button>
                 )}
               </div>
+
+              {existing && (
+                <ReviewBlock
+                  sub={existing}
+                  isGrading={grading.has(lesson.key)}
+                  now={now}
+                  reviewer={
+                    reviewerProfile
+                      ? { name: reviewerProfile.name, avatarUrl: reviewerProfile.avatarUrl }
+                      : undefined
+                  }
+                />
+              )}
             </Card>
           );
         })}
@@ -217,4 +284,41 @@ export function SubmissionsPage() {
       </p>
     </div>
   );
+}
+
+/** Chọn đúng trạng thái nhận xét để hiện dưới mỗi bài nộp. */
+function ReviewBlock({
+  sub,
+  isGrading,
+  now,
+  reviewer,
+}: {
+  sub: Submission;
+  isGrading: boolean;
+  now: number;
+  reviewer?: { name: string; avatarUrl: string | null };
+}) {
+  // Admin đã đánh giá thì luôn ưu tiên hiện đánh giá của Admin
+  if (sub.admin_feedback) {
+    return (
+      <ReviewComment
+        score={sub.admin_score}
+        feedback={sub.admin_feedback}
+        fromAdmin
+        reviewer={reviewer}
+      />
+    );
+  }
+
+  if (sub.grade_error) return <ReviewError message={sub.grade_error} />;
+
+  if (sub.ai_feedback) {
+    return <ReviewComment score={sub.ai_score} feedback={sub.ai_feedback} reviewer={reviewer} />;
+  }
+
+  if (isGrading) return <ReviewLoading reviewer={reviewer} />;
+
+  const elapsed = now - new Date(sub.updated_at).getTime();
+  const minutesLeft = Math.max(0, Math.ceil((GRADING_DELAY_MS - elapsed) / 60_000));
+  return <ReviewPending minutesLeft={minutesLeft} reviewer={reviewer} />;
 }
