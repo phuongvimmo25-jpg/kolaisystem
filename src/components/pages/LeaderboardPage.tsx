@@ -35,10 +35,21 @@ function Shields({ count, size = "sm" }: { count: number; size?: "sm" | "md" }) 
           className={`${cls} text-gold drop-shadow-[0_0_6px_oklch(0.78_0.16_75/0.6)]`}
         />
       ))}
-      {count > MAX && <span className="ml-0.5 text-[11px] font-bold text-gold">+{count - MAX}</span>}
+      {count > MAX && (
+        <span className="ml-0.5 text-[11px] font-bold text-gold">+{count - MAX}</span>
+      )}
     </div>
   );
 }
+
+/** Các bậc thứ hạng — mỗi bậc gom các hạng tới mốc `max`. */
+const TIERS = [
+  { max: 10, label: "TOP 10", tone: "border-gold/40 bg-gold/10 text-gold" },
+  { max: 20, label: "TOP 20", tone: "border-primary/40 bg-primary/10 text-primary-glow" },
+  { max: 50, label: "TOP 50", tone: "border-sky-500/35 bg-sky-500/10 text-sky-300" },
+  { max: 100, label: "TOP 100", tone: "border-emerald-500/35 bg-emerald-500/10 text-emerald-300" },
+  { max: 200, label: "TOP 200", tone: "border-border bg-muted/40 text-muted-foreground" },
+] as const;
 
 export function LeaderboardPage() {
   const { user } = useAuth();
@@ -51,7 +62,7 @@ export function LeaderboardPage() {
       .select("id, display_name, avatar_url, total_points, submission_count, watched_count")
       .order("total_points", { ascending: false })
       .order("submission_count", { ascending: false })
-      .limit(100);
+      .limit(200);
     setRows((data ?? []) as LeaderRow[]);
     setLoading(false);
   }, []);
@@ -85,8 +96,7 @@ export function LeaderboardPage() {
               <span className="text-gradient-primary"> danh</span>
             </h1>
             <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5 text-gold" />
-              1 bài nộp = 1 khiên vàng
+              <ShieldCheck className="h-3.5 w-3.5 text-gold" />1 bài nộp = 1 khiên vàng
             </p>
           </div>
 
@@ -125,42 +135,77 @@ export function LeaderboardPage() {
         </Card>
       )}
 
-      {/* Từ hạng 4 trở đi */}
-      <div className="space-y-2">
-        {rest.map((r, i) => (
-          <Card
-            key={r.id}
-            className={`member-row flex items-center gap-3 rounded-xl p-3 ${
-              r.id === user?.id ? "member-row-self" : ""
-            }`}
-          >
-            <div className="w-8 bg-gradient-to-b from-foreground/80 to-foreground/40 bg-clip-text text-center text-sm font-black text-transparent">
-              #{i + 4}
-            </div>
-            <Avatar className="h-10 w-10 ring-2 ring-primary/30">
-              <AvatarImage src={r.avatar_url ?? undefined} className="object-cover" />
-              <AvatarFallback className="bg-primary/20 text-xs font-bold text-primary">
-                {r.display_name.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[15px] font-bold text-white">{r.display_name}</div>
-              <div className="mt-0.5 flex items-center gap-2">
-                <div className="flex items-center gap-0.5">
-                  <Shields count={r.submission_count} />
-                </div>
-                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <PlayCircle className="h-2.5 w-2.5" />
-                  {r.watched_count}/{ALL_LESSONS.length}
+      {/* Từ hạng 4 trở đi — chia theo bậc TOP 10 / 20 / 50 / 100 / 200 */}
+      <div className="space-y-5">
+        {TIERS.map((tier, ti) => {
+          const from = ti === 0 ? 4 : TIERS[ti - 1].max + 1;
+          const inTier = rest.filter((_, i) => {
+            const rankNo = i + 4;
+            return rankNo >= from && rankNo <= tier.max;
+          });
+          if (inTier.length === 0) return null;
+
+          return (
+            <section key={tier.label}>
+              <div className="mb-2 flex items-center gap-2.5">
+                <span
+                  className={
+                    "rounded-full border px-2.5 py-0.5 text-[11px] font-black tracking-[0.14em] " +
+                    tier.tone
+                  }
+                >
+                  {tier.label}
                 </span>
+                <span className="text-[11px] text-muted-foreground">
+                  hạng {from}–{tier.max}
+                </span>
+                <div className="h-px flex-1 bg-border/70" />
               </div>
-            </div>
-            <div className="flex items-center gap-1 bg-gradient-to-r from-gold to-amber-300 bg-clip-text text-base font-black text-transparent drop-shadow-[0_0_8px_oklch(0.78_0.16_75/0.4)]">
-              {r.total_points}
-              <Flame className="h-3 w-3 text-orange-400" />
-            </div>
-          </Card>
-        ))}
+
+              <div className="space-y-2">
+                {inTier.map((r) => {
+                  const rankNo = rest.indexOf(r) + 4;
+                  return (
+                    <Card
+                      key={r.id}
+                      className={`member-row flex items-center gap-3 rounded-xl p-3 ${
+                        r.id === user?.id ? "member-row-self" : ""
+                      }`}
+                    >
+                      <div className="w-8 bg-gradient-to-b from-foreground/80 to-foreground/40 bg-clip-text text-center text-sm font-black text-transparent">
+                        #{rankNo}
+                      </div>
+                      <Avatar className="h-10 w-10 ring-2 ring-primary/30">
+                        <AvatarImage src={r.avatar_url ?? undefined} className="object-cover" />
+                        <AvatarFallback className="bg-primary/20 text-xs font-bold text-primary">
+                          {r.display_name.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[15px] font-bold text-white">
+                          {r.display_name}
+                        </div>
+                        <div className="mt-0.5 flex items-center gap-2">
+                          <div className="flex items-center gap-0.5">
+                            <Shields count={r.submission_count} />
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                            <PlayCircle className="h-2.5 w-2.5" />
+                            {r.watched_count}/{ALL_LESSONS.length}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 bg-gradient-to-r from-gold to-amber-300 bg-clip-text text-base font-black text-transparent drop-shadow-[0_0_8px_oklch(0.78_0.16_75/0.4)]">
+                        {r.total_points}
+                        <Flame className="h-3 w-3 text-orange-400" />
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
       </div>
     </div>
   );
@@ -259,8 +304,25 @@ function PodiumCard({
               className="halo-rotate-rev absolute inset-0 h-full w-full opacity-80"
               aria-hidden
             >
-              <circle cx="50" cy="50" r="48" fill="none" stroke={cfg.accent} strokeWidth="0.8" strokeDasharray="2 4" />
-              <circle cx="50" cy="50" r="44" fill="none" stroke={cfg.accent} strokeWidth="0.4" strokeDasharray="1 3" opacity="0.6" />
+              <circle
+                cx="50"
+                cy="50"
+                r="48"
+                fill="none"
+                stroke={cfg.accent}
+                strokeWidth="0.8"
+                strokeDasharray="2 4"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="44"
+                fill="none"
+                stroke={cfg.accent}
+                strokeWidth="0.4"
+                strokeDasharray="1 3"
+                opacity="0.6"
+              />
             </svg>
 
             <svg
@@ -284,7 +346,11 @@ function PodiumCard({
               </text>
             </svg>
 
-            <svg viewBox="0 0 100 100" className="halo-rotate absolute inset-0 h-full w-full opacity-40" aria-hidden>
+            <svg
+              viewBox="0 0 100 100"
+              className="halo-rotate absolute inset-0 h-full w-full opacity-40"
+              aria-hidden
+            >
               {Array.from({ length: 12 }).map((_, i) => (
                 <line
                   key={i}
@@ -321,7 +387,9 @@ function PodiumCard({
             {row.display_name}
           </div>
 
-          <div className={`mt-0.5 flex items-center gap-0.5 text-[13px] font-black sm:mt-1 sm:gap-1 sm:text-sm md:text-base ${cfg.text}`}>
+          <div
+            className={`mt-0.5 flex items-center gap-0.5 text-[13px] font-black sm:mt-1 sm:gap-1 sm:text-sm md:text-base ${cfg.text}`}
+          >
             {row.total_points}
             <Flame className="h-3 w-3 text-orange-400 sm:h-3.5 sm:w-3.5" />
           </div>
