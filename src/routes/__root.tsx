@@ -11,7 +11,7 @@ import { useEffect } from "react";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/AppLayout";
 import { OnboardingPage } from "@/components/pages/OnboardingPage";
-import { useProfile } from "@/hooks/useProfile";
+import { ProfileProvider, useProfile } from "@/hooks/useProfile";
 import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
@@ -122,7 +122,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   return (
     <AuthProvider>
-      <AppShell />
+      <ProfileProvider>
+        <AppShell />
+      </ProfileProvider>
       <Toaster position="top-center" richColors theme="dark" />
     </AuthProvider>
   );
@@ -164,17 +166,9 @@ function AppShell() {
     return <Outlet />;
   }
 
-  // Chờ hồ sơ tải xong rồi mới quyết định, tránh nháy màn hình xác nhận
-  if (profileLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
-      </div>
-    );
-  }
-
-  // Đăng nhập lần đầu: bắt khai tên Zalo trước khi vào học
-  if (profile && !profile.zalo_name) {
+  // Chỉ chặn khi đã biết chắc hồ sơ thiếu tên Zalo.
+  // Lúc hồ sơ còn đang tải thì cho vào app luôn, không bắt chờ.
+  if (!profileLoading && profile && !profile.zalo_name) {
     return <OnboardingPage />;
   }
 

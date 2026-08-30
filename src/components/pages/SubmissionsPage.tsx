@@ -5,6 +5,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
 import { ALL_LESSONS, POINTS_PER_SUBMISSION } from "@/lib/lessons";
@@ -16,7 +26,9 @@ import {
   ReviewPending,
   ReviewLoading,
   ReviewError,
+  AdminReviewSlot,
 } from "@/components/ReviewComment";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 interface Submission {
   lesson_key: string;
@@ -47,6 +59,48 @@ export function SubmissionsPage() {
   const [grading, setGrading] = useState<Set<string>>(new Set());
   const [now, setNow] = useState(() => Date.now());
   const reviewerProfile = useReviewer();
+  const { isAdmin } = useIsAdmin();
+
+  // Hộp thoại Admin chấm trực tiếp
+  const [editing, setEditing] = useState<Submission | null>(null);
+  const [adminScore, setAdminScore] = useState("");
+  const [adminNote, setAdminNote] = useState("");
+  const [savingAdmin, setSavingAdmin] = useState(false);
+
+  const openAdminEditor = (sub: Submission) => {
+    setEditing(sub);
+    setAdminScore(sub.admin_score !== null ? String(sub.admin_score) : "");
+    setAdminNote(sub.admin_feedback ?? "");
+  };
+
+  const saveAdminReview = async () => {
+    if (!editing) return;
+    const note = adminNote.trim();
+    if (!note) {
+      toast.error("Chưa có nhận xét");
+      return;
+    }
+    const num = adminScore.trim() === "" ? null : Number(adminScore);
+    if (num !== null && (Number.isNaN(num) || num < 0 || num > 10)) {
+      toast.error("Điểm phải từ 0 đến 10");
+      return;
+    }
+
+    setSavingAdmin(true);
+    const { error } = await supabase
+      .from("submissions")
+      .update({ admin_score: num, admin_feedback: note, admin_at: new Date().toISOString() })
+      .eq("lesson_key", editing.lesson_key);
+    setSavingAdmin(false);
+
+    if (error) {
+      toast.error("Không lưu được", { description: error.message });
+      return;
+    }
+    toast.success("Đã lưu đánh giá");
+    setEditing(null);
+    load();
+  };
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -266,6 +320,8 @@ export function SubmissionsPage() {
                   sub={existing}
                   isGrading={grading.has(lesson.key)}
                   now={now}
+                  isAdmin={isAdmin}
+                  onAdminEdit={() => openAdminEditor(existing)}
                   reviewer={
                     reviewerProfile
                       ? { name: reviewerProfile.name, avatarUrl: reviewerProfile.avatarUrl }
@@ -277,6 +333,62 @@ export function SubmissionsPage() {
           );
         })}
       </div>
+
+      <Dialog open={!!editing} onOpenChange={(v) => !v && setEditing(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Chấm trực tiếp</DialogTitle>
+            <DialogDescription>
+              Đánh giá này hiện riêng một khối, không đè lên nhận xét tự động.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="admin-score" className="text-[13px] font-medium">
+                Điểm{" "}
+                <span className="text-muted-foreground">(0–10, bỏ trống nếu chỉ nhận xét)</span>
+              </Label>
+              <Input
+                id="admin-score"
+                type="number"
+                min={0}
+                max={10}
+                step={0.5}
+                value={adminScore}
+                onChange={(e) => setAdminScore(e.target.value)}
+                className="mt-1.5 bg-background/60"
+              />
+            </div>
+            <div>
+              <Label htmlFor="admin-note" className="text-[13px] font-medium">
+                Nhận xét
+              </Label>
+              <Textarea
+                id="admin-note"
+                rows={4}
+                value={adminNote}
+                onChange={(e) => setAdminNote(e.target.value)}
+                placeholder="Phong thấy bạn..."
+                className="mt-1.5 resize-none bg-background/60"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditing(null)}>
+              Huỷ
+            </Button>
+            <Button
+              onClick={saveAdminReview}
+              disabled={savingAdmin}
+              className="bg-gradient-gold text-gold-foreground hover:opacity-90"
+            >
+              {savingAdmin ? "Đang lưu..." : "Lưu đánh giá"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <p className="mt-5 text-center text-xs leading-relaxed text-muted-foreground">
         Nhớ mở quyền <strong className="text-foreground/70">“Bất kỳ ai có đường liên kết”</strong>{" "}
@@ -291,34 +403,41 @@ function ReviewBlock({
   sub,
   isGrading,
   now,
+  isAdmin,
+  onAdminEdit,
   reviewer,
 }: {
   sub: Submission;
   isGrading: boolean;
   now: number;
+  isAdmin?: boolean;
+  onAdminEdit?: () => void;
   reviewer?: { name: string; avatarUrl: string | null };
 }) {
-  // Admin đã đánh giá thì luôn ưu tiên hiện đánh giá của Admin
-  if (sub.admin_feedback) {
-    return (
-      <ReviewComment
-        score={sub.admin_score}
-        feedback={sub.admin_feedback}
-        fromAdmin
-        reviewer={reviewer}
-      />
-    );
-  }
-
-  if (sub.grade_error) return <ReviewError message={sub.grade_error} />;
-
-  if (sub.ai_feedback) {
-    return <ReviewComment score={sub.ai_score} feedback={sub.ai_feedback} reviewer={reviewer} />;
-  }
-
-  if (isGrading) return <ReviewLoading reviewer={reviewer} />;
-
   const elapsed = now - new Date(sub.updated_at).getTime();
   const minutesLeft = Math.max(0, Math.ceil((GRADING_DELAY_MS - elapsed) / 60_000));
-  return <ReviewPending minutesLeft={minutesLeft} reviewer={reviewer} />;
+
+  return (
+    <>
+      {/* Khối 1 — nhận xét tự động */}
+      {sub.grade_error ? (
+        <ReviewError message={sub.grade_error} />
+      ) : sub.ai_feedback ? (
+        <ReviewComment score={sub.ai_score} feedback={sub.ai_feedback} reviewer={reviewer} />
+      ) : isGrading ? (
+        <ReviewLoading reviewer={reviewer} />
+      ) : (
+        <ReviewPending minutesLeft={minutesLeft} reviewer={reviewer} />
+      )}
+
+      {/* Khối 2 — chỗ dành riêng cho Admin chấm trực tiếp */}
+      <AdminReviewSlot
+        score={sub.admin_score}
+        feedback={sub.admin_feedback}
+        reviewer={reviewer}
+        isAdmin={isAdmin}
+        onEdit={onAdminEdit}
+      />
+    </>
+  );
 }

@@ -105,3 +105,70 @@ export function ReviewError({ message }: { message: string }) {
     </div>
   );
 }
+
+/** Chỗ dành riêng cho đánh giá của Admin — luôn hiện, kể cả khi chưa chấm. */
+export function AdminReviewSlot({
+  score,
+  feedback,
+  reviewer = DEFAULT_REVIEWER,
+  isAdmin,
+  onEdit,
+}: {
+  score: number | null;
+  feedback: string | null;
+  reviewer?: ReviewerInfo;
+  isAdmin?: boolean;
+  onEdit?: () => void;
+}) {
+  // Đã có đánh giá
+  if (feedback) {
+    return (
+      <div className="mt-2 flex gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.06] p-3">
+        <Avatar reviewer={reviewer} />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="text-[13px] font-bold text-emerald-300">{reviewer.name}</span>
+            <span className="rounded-full bg-emerald-500/15 px-1.5 py-px text-[10px] font-bold uppercase tracking-wider text-emerald-300/90">
+              Chấm trực tiếp
+            </span>
+            {score !== null && (
+              <span className="ml-auto text-sm font-black text-emerald-300">{score}/10</span>
+            )}
+          </div>
+          <p className="mt-1 text-[14px] leading-relaxed text-foreground/90">{feedback}</p>
+          {isAdmin && onEdit && (
+            <button
+              onClick={onEdit}
+              className="mt-1.5 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            >
+              Sửa đánh giá
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Chưa có — chừa sẵn chỗ
+  return (
+    <div className="mt-2 flex items-center gap-2.5 rounded-xl border border-dashed border-border/70 bg-background/30 p-3">
+      <Avatar reviewer={reviewer} />
+      <div className="min-w-0 flex-1">
+        <div className="text-[13px] font-bold text-muted-foreground">
+          Đánh giá trực tiếp của {reviewer.name}
+        </div>
+        <p className="mt-0.5 text-[13px] text-muted-foreground/80">
+          {isAdmin ? "Bạn chưa chấm bài này." : "Sẽ có sau khi Phong xem lại bài của bạn."}
+        </p>
+      </div>
+      {isAdmin && onEdit && (
+        <button
+          onClick={onEdit}
+          className="shrink-0 rounded-lg border border-gold/35 bg-gold/10 px-2.5 py-1 text-xs font-bold text-gold transition hover:bg-gold/20"
+        >
+          Chấm ngay
+        </button>
+      )}
+    </div>
+  );
+}

@@ -15,12 +15,16 @@ import logo from "@/assets/logo.png";
  */
 export function OnboardingPage() {
   const { user } = useAuth();
-  const { profile, refetch } = useProfile();
+  const { profile, patchProfile, refetch } = useProfile();
   const [zaloName, setZaloName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [touched, setTouched] = useState(false);
+
+  // Điền sẵn tên từ tài khoản Google — phần lớn chỉ cần bấm Tiếp tục
+  const value = touched ? zaloName : zaloName || (profile?.display_name ?? "");
 
   const confirm = async () => {
-    const name = zaloName.trim();
+    const name = value.trim();
     if (name.length < 2) {
       toast.error("Chưa có tên Zalo", { description: "Nhập đúng tên hiển thị trên Zalo của bạn." });
       return;
@@ -39,9 +43,10 @@ export function OnboardingPage() {
       return;
     }
 
+    // Mở cổng ngay tại chỗ, không chờ mạng — học viên vào app lập tức
+    patchProfile({ zalo_name: name, onboarded_at: new Date().toISOString() });
     toast.success("Đã xác nhận!");
-    // refetch xong, cổng ở __root mở ra và học viên vào thẳng app
-    await refetch();
+    void refetch();
   };
 
   return (
@@ -59,7 +64,7 @@ export function OnboardingPage() {
             Chào <span className="text-gradient-gold">{profile?.display_name ?? "bạn"}</span>
           </h1>
           <p className="mx-auto mt-2 max-w-[17rem] text-[14px] leading-relaxed text-muted-foreground">
-            Cho Phong biết tên Zalo của bạn trước khi bắt đầu nhé.
+            Xác nhận tên Zalo của bạn rồi vào học nhé.
           </p>
         </div>
 
@@ -70,14 +75,19 @@ export function OnboardingPage() {
             </Label>
             <Input
               id="zalo-name"
-              value={zaloName}
-              onChange={(e) => setZaloName(e.target.value)}
+              value={value}
+              onChange={(e) => {
+                setTouched(true);
+                setZaloName(e.target.value);
+              }}
               onKeyDown={(e) => e.key === "Enter" && !saving && confirm()}
-              placeholder="Đúng tên hiển thị trên Zalo"
+              placeholder="Tên hiển thị trên Zalo"
               maxLength={60}
-              autoFocus
               className="mt-1.5 bg-background/60"
             />
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Khác tên Zalo thì sửa lại, còn đúng rồi thì bấm Tiếp tục.
+            </p>
           </div>
 
           <Button
@@ -92,7 +102,7 @@ export function OnboardingPage() {
               </>
             ) : (
               <>
-                Xác nhận <ArrowRight className="ml-2 h-4 w-4" />
+                Tiếp tục <ArrowRight className="ml-2 h-4 w-4" />
               </>
             )}
           </Button>
