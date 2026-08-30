@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   CheckCircle2,
-  PlayCircle,
   Clock,
   Lock,
   ShieldCheck,
@@ -50,36 +49,34 @@ export function VideosPage() {
     load();
   }, [load]);
 
-  const toggleWatched = async (lesson: Lesson) => {
-    if (!user) return;
+  /** Đánh dấu đã xem (không bỏ đánh dấu). Trả về true nếu ghi nhận thành công. */
+  const markWatched = async (lesson: Lesson) => {
+    if (!user) return false;
+    if (watched.has(lesson.key)) return true;
     setBusy(lesson.key);
-    if (watched.has(lesson.key)) {
-      const { error } = await supabase
-        .from("watched_videos")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("video_key", lesson.key);
-      if (error) {
-        toast.error("Không bỏ đánh dấu được", { description: error.message });
-      } else {
-        setWatched((prev) => {
-          const n = new Set(prev);
-          n.delete(lesson.key);
-          return n;
-        });
-      }
-    } else {
-      const { error } = await supabase
-        .from("watched_videos")
-        .insert({ user_id: user.id, video_key: lesson.key });
-      if (error) {
-        toast.error("Không ghi nhận được", { description: error.message });
-      } else {
-        setWatched((prev) => new Set(prev).add(lesson.key));
-        toast.success("+" + POINTS_PER_VIDEO + " điểm", { description: lesson.title });
-      }
-    }
+    const { error } = await supabase
+      .from("watched_videos")
+      .insert({ user_id: user.id, video_key: lesson.key });
     setBusy(null);
+    if (error) {
+      toast.error("Không ghi nhận được", { description: error.message });
+      return false;
+    }
+    setWatched((prev) => new Set(prev).add(lesson.key));
+    toast.success("+" + POINTS_PER_VIDEO + " điểm", { description: lesson.title });
+    return true;
+  };
+
+  /** Hoàn thành bài hiện tại rồi sang bài kế tiếp. */
+  const completeAndNext = async (lesson: Lesson) => {
+    const ok = await markWatched(lesson);
+    if (!ok) return;
+    const i = ALL_LESSONS.findIndex((l) => l.key === lesson.key);
+    const nextLesson = ALL_LESSONS[i + 1];
+    if (nextLesson) {
+      setSelected(nextLesson.key);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const total = ALL_LESSONS.length;
@@ -113,7 +110,10 @@ export function VideosPage() {
                   <RailItem
                     key={lesson.key}
                     active={selected === lesson.key}
-                    onClick={() => setSelected(lesson.key)}
+                    onClick={() => {
+                      setSelected(lesson.key);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
                     icon={
                       watched.has(lesson.key) ? (
                         <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
@@ -138,10 +138,11 @@ export function VideosPage() {
           <LessonView
             lesson={current}
             index={ALL_LESSONS.findIndex((l) => l.key === current.key)}
+            nextLesson={ALL_LESSONS[ALL_LESSONS.findIndex((l) => l.key === current.key) + 1]}
             isWatched={watched.has(current.key)}
             isSubmitted={submitted.has(current.key)}
             busy={busy === current.key}
-            onToggle={() => toggleWatched(current)}
+            onCompleteNext={() => completeAndNext(current)}
           />
         )}
       </div>
@@ -197,17 +198,19 @@ function RailItem({
 function LessonView({
   lesson,
   index,
+  nextLesson,
   isWatched,
   isSubmitted,
   busy,
-  onToggle,
+  onCompleteNext,
 }: {
   lesson: Lesson;
   index: number;
+  nextLesson?: Lesson;
   isWatched: boolean;
   isSubmitted: boolean;
   busy: boolean;
-  onToggle: () => void;
+  onCompleteNext: () => void;
 }) {
   const hasVideo = lesson.youtubeId.trim() !== "";
   const deadline = getLessonDeadline(index);
@@ -268,24 +271,30 @@ function LessonView({
         </p>
       </div>
 
-      {/* Đánh dấu đã xem */}
-      <div>
-        <Button
-          variant={isWatched ? "outline" : "default"}
-          disabled={!hasVideo || busy}
-          onClick={onToggle}
-          className={isWatched ? "" : "bg-gradient-primary hover:opacity-90"}
-        >
-          {isWatched ? (
-            <>
-              <CheckCircle2 className="mr-1.5 h-4 w-4" /> Đã xem xong
-            </>
-          ) : (
-            <>
-              <PlayCircle className="mr-1.5 h-4 w-4" /> Đánh dấu đã xem
-            </>
-          )}
-        </Button>
+      {/* Hoàn thành bài rồi sang bài kế — không phải tự mò lên mục lục */}
+      <div className="flex flex-wrap items-center gap-2">
+        {nextLesson ? (
+          <Button
+            size="lg"
+            disabled={!hasVideo || busy}
+            onClick={onCompleteNext}
+            className="w-full bg-gradient-primary hover:opacity-90 sm:w-auto"
+          >
+            <CheckCircle2 className="mr-2 h-4 w-4" />
+            {isWatched ? "Sang bài " + nextLesson.code : "Hoàn thành · Sang bài " + nextLesson.code}
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        ) : (
+          <Button
+            size="lg"
+            disabled={!hasVideo || busy}
+            onClick={onCompleteNext}
+            className="w-full bg-gradient-primary hover:opacity-90 sm:w-auto"
+          >
+            <CheckCircle2 className="mr-2 h-4 w-4" />
+            {isWatched ? "Đã học hết bài giảng" : "Hoàn thành bài cuối"}
+          </Button>
+        )}
       </div>
 
       {/* ══ BÀI TẬP — khối nổi bật, đặt cuối cùng ══ */}
