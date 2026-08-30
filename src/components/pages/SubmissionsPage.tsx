@@ -91,6 +91,14 @@ export function SubmissionsPage() {
     load();
   }, [load]);
 
+  /** Gọi chấm bài — gửi kèm token của chính học viên. */
+  const runGrading = useCallback(async (dayKey: string) => {
+    const { data: sess } = await supabase.auth.getSession();
+    const token = sess.session?.access_token;
+    if (!token) return;
+    await gradeSubmission({ data: { lessonKey: dayKey, accessToken: token } });
+  }, []);
+
   // Nhịp 20 giây để đếm ngược tới lúc Phong phản hồi
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 20_000);
@@ -109,7 +117,7 @@ export function SubmissionsPage() {
 
     for (const row of due) {
       setGrading((prev) => new Set(prev).add(row.lesson_key));
-      gradeSubmission({ data: { lessonKey: row.lesson_key } })
+      runGrading(row.lesson_key)
         .then(() => load())
         .catch(() => {
           /* lỗi mạng — lần tải trang sau sẽ thử lại */
@@ -122,7 +130,7 @@ export function SubmissionsPage() {
           }),
         );
     }
-  }, [subs, now, grading, load]);
+  }, [subs, now, grading, load, runGrading]);
 
   const save = async (dayKey: string) => {
     if (!user) return;
@@ -158,6 +166,22 @@ export function SubmissionsPage() {
       subs[dayKey] ? "Đã cập nhật link" : "Nộp bài thành công! +" + POINTS_PER_SUBMISSION + " điểm",
     );
     load();
+
+    // Chấm ngay tại chỗ. Nhận xét vẫn chỉ hiện sau 5 phút,
+    // nhưng không phụ thuộc học viên có mở lại trang hay không.
+    setGrading((prev) => new Set(prev).add(dayKey));
+    runGrading(dayKey)
+      .catch(() => {
+        /* lỗi mạng — vòng lặp nền sẽ thử lại */
+      })
+      .finally(() => {
+        setGrading((prev) => {
+          const n = new Set(prev);
+          n.delete(dayKey);
+          return n;
+        });
+        load();
+      });
   };
 
   const remove = async (dayKey: string) => {

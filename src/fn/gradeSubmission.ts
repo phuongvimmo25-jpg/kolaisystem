@@ -92,7 +92,7 @@ async function callGemini(apiKey: string, pdfBase64: string, userText: string) {
  * Chạy phía máy chủ nên khoá Gemini không bao giờ lộ ra trình duyệt.
  */
 export const gradeSubmission = createServerFn({ method: "POST" })
-  .inputValidator((data: { lessonKey: string }) => data)
+  .inputValidator((data: { lessonKey: string; accessToken: string }) => data)
   .handler(async ({ data }) => {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error("Máy chủ chưa cấu hình GEMINI_API_KEY.");
@@ -102,15 +102,11 @@ export const gradeSubmission = createServerFn({ method: "POST" })
       process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
     if (!supabaseUrl || !supabaseKey) throw new Error("Máy chủ thiếu cấu hình Supabase.");
 
-    // Nạp động: giữ module chỉ-chạy-máy-chủ ra khỏi gói trình duyệt
-    const { getRequestHeader } = await import("@tanstack/react-start/server");
-
-    // Token của chính học viên — mọi thao tác vẫn đi qua RLS
-    const auth = getRequestHeader("authorization");
-    if (!auth) throw new Error("Chưa đăng nhập.");
+    // Token do chính trình duyệt gửi lên — mọi thao tác vẫn đi qua RLS của học viên đó
+    if (!data.accessToken) throw new Error("Chưa đăng nhập.");
 
     const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: auth } },
+      global: { headers: { Authorization: "Bearer " + data.accessToken } },
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
