@@ -9,6 +9,7 @@ import {
   ArrowRight,
   ChevronRight,
   Circle,
+  ClipboardList,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,7 +18,13 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
-import { PARTS, ALL_LESSONS, POINTS_PER_VIDEO, type Lesson } from "@/lib/lessons";
+import {
+  PARTS,
+  ALL_LESSONS,
+  POINTS_PER_VIDEO,
+  POINTS_PER_SUBMISSION,
+  type Lesson,
+} from "@/lib/lessons";
 
 export function VideosPage() {
   const { user } = useAuth();
@@ -82,8 +89,8 @@ export function VideosPage() {
   return (
     <div className="grid gap-6 lg:grid-cols-[248px_1fr]">
       {/* ══ CỘT TRÁI — MỤC LỤC BÀI HỌC ══ */}
-      <aside className="lg:sticky lg:top-20 lg:self-start">
-        <div className="rounded-2xl border border-border/70 bg-card/45 p-2.5 lg:max-h-[calc(100vh-6.5rem)] lg:overflow-y-auto">
+      <aside className="lg:self-stretch">
+        <div className="flex flex-col rounded-2xl border border-border/70 bg-card/45 p-2.5 lg:h-full lg:overflow-y-auto">
           <div className="px-2 pb-2 pt-1">
             <div className="flex items-center justify-between">
               <span className="eyebrow">Nội dung</span>
@@ -254,14 +261,8 @@ function LessonView({
         </p>
       </div>
 
-      {/* Đề bài */}
-      <Card className="border-border/70 bg-card/50 p-4">
-        <div className="eyebrow">Bài tập</div>
-        <p className="mt-2 text-[15px] leading-relaxed text-foreground/90">{lesson.assignment}</p>
-      </Card>
-
-      {/* Hành động */}
-      <div className="flex flex-wrap gap-2">
+      {/* Đánh dấu đã xem */}
+      <div>
         <Button
           variant={isWatched ? "outline" : "default"}
           disabled={!hasVideo || busy}
@@ -278,14 +279,41 @@ function LessonView({
             </>
           )}
         </Button>
-
-        <Button variant="outline" asChild>
-          <Link to="/bai-tap" hash={lesson.key}>
-            {isSubmitted ? "Sửa bài nộp" : "Nộp bài tập"}
-            <ArrowRight className="ml-1.5 h-4 w-4" />
-          </Link>
-        </Button>
       </div>
+
+      {/* ══ BÀI TẬP — khối nổi bật, đặt cuối cùng ══ */}
+      <section className="assignment-box">
+        <div className="flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-gold text-gold-foreground">
+            <ClipboardList className="h-4 w-4" />
+          </span>
+          <h2 className="text-[15px] font-black uppercase tracking-[0.1em] text-gold">
+            Bài tập cần nộp
+          </h2>
+          {isSubmitted && (
+            <span className="ml-auto inline-flex items-center gap-1 rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-bold text-emerald-400">
+              <CheckCircle2 className="h-3 w-3" /> Đã nộp
+            </span>
+          )}
+        </div>
+
+        <p className="mt-3 text-[16px] font-medium leading-relaxed text-foreground">
+          {lesson.assignment}
+        </p>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Button asChild className="bg-gradient-gold text-gold-foreground hover:opacity-90">
+            <Link to="/bai-tap" hash={lesson.key}>
+              {isSubmitted ? "Sửa bài nộp" : "Nộp bài tập"}
+              <ArrowRight className="ml-1.5 h-4 w-4" />
+            </Link>
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            Làm trên Google Docs rồi dán link · nộp được {POINTS_PER_SUBMISSION} điểm và 1 khiên
+            vàng
+          </span>
+        </div>
+      </section>
     </div>
   );
 }

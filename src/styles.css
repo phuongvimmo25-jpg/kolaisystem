@@ -436,6 +436,29 @@
       oklch(0.08 0.015 280 / 0.35) 100%);
 }
 
+/* ══ KHUNG BÀI TẬP TRONG TRANG BÀI GIẢNG ══ */
+.assignment-box {
+  position: relative;
+  border-radius: 1rem;
+  padding: 1.1rem 1.15rem;
+  border: 1px solid oklch(0.78 0.16 75 / 0.35);
+  background:
+    radial-gradient(ellipse 60% 90% at 0% 0%, oklch(0.78 0.16 75 / 0.12), transparent 60%),
+    linear-gradient(180deg, oklch(0.78 0.16 75 / 0.06), oklch(0.14 0.02 285 / 0.6));
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.05),
+    0 14px 40px -26px oklch(0.78 0.16 75 / 0.7);
+}
+/* Vạch vàng dọc bên trái cho bắt mắt */
+.assignment-box::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0.9rem; bottom: 0.9rem;
+  width: 3px;
+  border-radius: 999px;
+  background-image: linear-gradient(180deg, oklch(0.86 0.15 85), oklch(0.72 0.17 55));
+}
+
 /* ══ KHỐI GIỚI THIỆU Ở TRANG CHỦ ══ */
 .intro-panel {
   position: relative;
