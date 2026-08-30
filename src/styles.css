@@ -504,6 +504,44 @@
   .cta-start, .cta-start::after { animation: none; }
 }
 
+/* ══ BÌA Ở CHÂN TRANG — mờ ở mép TRÊN để nhô lên khỏi nền ══ */
+.hero-cover--footer {
+  aspect-ratio: 16 / 7;
+  animation: none;
+}
+@media (min-width: 768px) {
+  .hero-cover--footer { aspect-ratio: 21 / 7; }
+}
+.hero-cover--footer .hero-cover__veil {
+  background: linear-gradient(180deg,
+    var(--background) 0%,
+    oklch(0.08 0.015 280 / 0.9) 12%,
+    oklch(0.08 0.015 280 / 0.45) 32%,
+    transparent 60%,
+    oklch(0.08 0.015 280 / 0.35) 100%);
+}
+.hero-cover--footer .hero-cover__img {
+  object-position: center 38%;
+}
+.hero-cover--footer .hero-cover__content {
+  align-items: center;
+  text-align: center;
+  padding-bottom: clamp(0.9rem, 2.5vw, 1.5rem);
+}
+
+/* ══ KHỐI LỜI CHÀO GỌN Ở ĐẦU TRANG ══ */
+.greet-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid oklch(0.78 0.16 75 / 0.16);
+  background: linear-gradient(135deg, oklch(0.78 0.16 75 / 0.07), transparent 60%);
+  padding: 0.85rem 1rem;
+}
+
 /* === HERO COVER — bìa Dashboard, lấy cảm hứng đen + vàng gold === */
 .hero-cover {
   position: relative;

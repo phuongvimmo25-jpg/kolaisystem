@@ -100,46 +100,44 @@ export function HomePage() {
 
   return (
     <div className="mx-auto max-w-[980px] space-y-6">
-      {/* ══ BÌA + LỜI CHÀO ══ */}
-      <div className="hero-cover">
-        <img src={homeHero} alt="KOL AI SYSTEM" className="hero-cover__img" loading="eager" />
-        <div className="hero-cover__shine" aria-hidden />
-        <div className="hero-cover__veil" aria-hidden />
-
-        <div className="hero-cover__content">
-          <h1 className="hero-cover__title">
+      {/* ══ 1. LỜI CHÀO GỌN ══ */}
+      <div className="greet-bar">
+        <div className="min-w-0">
+          <h1 className="text-[19px] font-black leading-tight md:text-[23px]">
             Chào, <span className="text-gradient-gold">{profile?.display_name ?? "bạn"}</span>
           </h1>
-
           {next && (
-            <p className="hero-cover__subtitle">
+            <p className="mt-1 truncate text-[13px] text-muted-foreground">
               Sắp tới hạn: <b className="text-gold">bài {next.lesson.code}</b> — {next.lesson.title}
             </p>
           )}
+        </div>
 
-          <div className="hero-cover__chips">
-            <div className="hero-chip hero-chip--gold">
-              <ShieldCheck className="h-4 w-4" /> {subs}/{total} khiên
-            </div>
-            <div className="hero-chip hero-chip--purple">
-              <Flame className="h-4 w-4" /> {points} điểm
-            </div>
-            {rank > 0 && <div className="hero-chip hero-chip--purple">Hạng #{rank}</div>}
-          </div>
-
-          <div className="mt-1 flex items-center gap-2.5">
-            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/15">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-2.5 py-1 text-xs font-bold text-gold">
+            <ShieldCheck className="h-3.5 w-3.5" /> {subs}/{total}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary-glow">
+            <Flame className="h-3.5 w-3.5" /> {points}
+          </span>
+          {rank > 0 && (
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary-glow">
+              Hạng #{rank}
+            </span>
+          )}
+          <div className="flex w-24 items-center gap-1.5">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-gold to-amber-300 transition-[width] duration-700"
                 style={{ width: percent + "%" }}
               />
             </div>
-            <span className="shrink-0 text-xs font-bold text-gold">{percent}%</span>
+            <span className="shrink-0 text-[11px] font-bold text-gold">{percent}%</span>
           </div>
         </div>
       </div>
 
-      {/* ══ VIDEO TỔNG QUAN + LỜI KÊU GỌI ══ */}
+      {/* ══ 2. VIDEO TỔNG QUAN + LỜI KÊU GỌI ══ */}
       <section className="intro-panel">
         <div className="mb-4 text-center">
           <div className="eyebrow">{COURSE_INTRO.eyebrow}</div>
@@ -179,7 +177,7 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ══ ĐI TIẾP ĐÂU ══ */}
+      {/* ══ 3. ĐI TIẾP ĐÂU ══ */}
       <div className="grid gap-3 sm:grid-cols-3">
         {LINKS.map((q) => (
           <Link key={q.to} to={q.to} className="group">
@@ -200,7 +198,7 @@ export function HomePage() {
         ))}
       </div>
 
-      {/* ══ HUY HIỆU ══ */}
+      {/* ══ 4. HUY HIỆU ══ */}
       <section>
         <h2 className="eyebrow mb-2.5">Huy hiệu</h2>
         <div className="grid grid-cols-5 gap-2">
@@ -234,6 +232,17 @@ export function HomePage() {
           })}
         </div>
       </section>
+
+      {/* ══ 5. BÌA CHÂN TRANG ══ */}
+      <footer className="hero-cover hero-cover--footer">
+        <img src={homeHero} alt="KOL AI SYSTEM" className="hero-cover__img" loading="lazy" />
+        <div className="hero-cover__veil" aria-hidden />
+        <div className="hero-cover__content">
+          <p className="text-[13px] font-semibold tracking-wide text-foreground/80 md:text-sm">
+            Hệ thống huấn luyện cấp tốc của những chiến thần
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
