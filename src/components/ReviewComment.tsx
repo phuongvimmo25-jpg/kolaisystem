@@ -1,4 +1,4 @@
-import { Clock3, Loader2, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Clock3, Loader2, AlertTriangle, ShieldCheck, BadgeCheck } from "lucide-react";
 import fallbackPhoto from "@/assets/logo.png";
 
 export interface ReviewerInfo {
@@ -49,8 +49,8 @@ export function ReviewComment({
         </div>
         <p className="mt-1 text-[14px] leading-relaxed text-foreground/90">{feedback}</p>
         {!fromAdmin && (
-          <p className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-gold/80">
-            <ShieldCheck className="h-3 w-3" /> Đã nhận 1 khiên vàng
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-300">
+            <BadgeCheck className="h-3.5 w-3.5" /> Bài nộp hợp lệ · đã tính 1 khiên vàng
           </p>
         )}
       </div>
@@ -67,14 +67,23 @@ export function ReviewPending({
   reviewer?: ReviewerInfo;
 }) {
   return (
-    <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-border/60 bg-background/40 px-3 py-2.5">
+    <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.05] px-3 py-2.5">
       <Avatar reviewer={reviewer} />
-      <p className="inline-flex min-w-0 flex-1 items-center gap-1.5 text-[13px] text-muted-foreground">
-        <Clock3 className="h-3.5 w-3.5 shrink-0" />
-        {minutesLeft > 0
-          ? `Sẽ phản hồi sau khoảng ${minutesLeft} phút nữa`
-          : "Đang xem bài của bạn..."}
-      </p>
+      <div className="min-w-0 flex-1">
+        <p className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-emerald-300">
+          <BadgeCheck className="h-4 w-4 shrink-0" /> Đã nhận bài của bạn
+        </p>
+        <p className="mt-1 inline-flex items-center gap-1.5 text-[12.5px] text-gold/90">
+          <ShieldCheck className="h-3.5 w-3.5 shrink-0" /> Đã tính 1 khiên vàng — bạn không cần làm
+          gì thêm
+        </p>
+        <p className="mt-1 inline-flex items-center gap-1.5 text-[12.5px] text-muted-foreground">
+          <Clock3 className="h-3.5 w-3.5 shrink-0" />
+          {minutesLeft > 0
+            ? `Phong sẽ nhận xét sau khoảng ${minutesLeft} phút nữa`
+            : "Phong đang đọc bài của bạn..."}
+        </p>
+      </div>
     </div>
   );
 }
@@ -98,9 +107,7 @@ export function ReviewError({ message, onRetry }: { message: string; onRetry?: (
     <div className="mt-3 flex gap-2.5 rounded-xl border border-red-500/30 bg-red-500/[0.06] p-3">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
       <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-bold text-red-300">
-          Chưa mở được bài — chưa được tính khiên
-        </div>
+        <div className="text-[13px] font-bold text-red-300">Phong chưa mở được bài của bạn</div>
         <p className="mt-0.5 text-[13px] leading-relaxed text-red-200/80">{message}</p>
         <p className="mt-1.5 text-[13px] leading-relaxed text-emerald-300/90">
           Bài nộp của bạn <b>vẫn được giữ nguyên</b>. Sửa quyền xong bấm nút dưới là được tính khiên

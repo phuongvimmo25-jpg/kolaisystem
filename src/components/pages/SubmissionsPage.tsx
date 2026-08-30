@@ -285,12 +285,9 @@ export function SubmissionsPage() {
   };
 
   const submittedKeys = new Set(Object.keys(subs));
-  // Đã nộp = có dòng. Có khiên = đã chấm xong và không lỗi.
+  // Nộp bài là có khiên ngay. Chấm xong chỉ đóng thêm dấu "hợp lệ".
   const submitted = DAYS.filter((d) => subs[d.key]).length;
-  const done = DAYS.filter((d) => {
-    const r = subs[d.key];
-    return r && r.graded_at && !r.grade_error && r.ai_feedback;
-  }).length;
+  const done = submitted;
 
   return (
     <div className="mx-auto max-w-[820px]">
