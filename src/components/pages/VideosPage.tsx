@@ -18,7 +18,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/PageHeader";
-import { useVideoProgress, REQUIRED_SECONDS } from "@/hooks/useVideoProgress";
 import { toast } from "sonner";
 import {
   DAYS,
@@ -231,11 +230,6 @@ function LessonView({
   const hasVideo = lesson.youtubeId.trim() !== "" && isOpen;
   const deadline = day ? getDayDeadline(day.day) : new Date();
 
-  const { ratio, enough, remaining } = useVideoProgress(lesson.key, hasVideo && !isWatched);
-  // Đã ghi nhận rồi thì không bắt xem lại
-  const canComplete = isWatched || enough;
-  const percentWatched = Math.round(ratio * 100);
-
   return (
     <div className="mx-auto max-w-[980px] space-y-5">
       {/* VIDEO LỚN — trung tâm */}
@@ -311,51 +305,26 @@ function LessonView({
         {nextLesson ? (
           <Button
             size="lg"
-            disabled={!hasVideo || busy || !canComplete}
+            disabled={!hasVideo || busy}
             onClick={onCompleteNext}
             className="w-full bg-gradient-primary hover:opacity-90 sm:w-auto"
           >
             <CheckCircle2 className="mr-2 h-4 w-4" />
-            {isWatched
-              ? "Sang bài " + nextLesson.code
-              : canComplete
-                ? "Hoàn thành · Sang bài " + nextLesson.code
-                : `Còn ${remaining} giây nữa`}
+            {isWatched ? "Sang bài " + nextLesson.code : "Hoàn thành · Sang bài " + nextLesson.code}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         ) : (
           <Button
             size="lg"
-            disabled={!hasVideo || busy || !canComplete}
+            disabled={!hasVideo || busy}
             onClick={onCompleteNext}
             className="w-full bg-gradient-primary hover:opacity-90 sm:w-auto"
           >
             <CheckCircle2 className="mr-2 h-4 w-4" />
-            {isWatched
-              ? "Đã học hết bài giảng"
-              : canComplete
-                ? "Hoàn thành bài cuối"
-                : `Còn ${remaining} giây nữa`}
+            {isWatched ? "Đã học hết bài giảng" : "Hoàn thành bài cuối"}
           </Button>
         )}
       </div>
-
-      {/* Tiến độ xem thật */}
-      {hasVideo && !isWatched && (
-        <div className="-mt-2">
-          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-gradient-primary transition-[width] duration-500"
-              style={{ width: percentWatched + "%" }}
-            />
-          </div>
-          <p className="mt-1.5 text-xs text-muted-foreground">
-            {canComplete
-              ? "Đã đủ thời gian — bấm Hoàn thành để nhận điểm"
-              : `Hãy xem video ít nhất ${REQUIRED_SECONDS} giây rồi mới hoàn thành được. Chuyển sang tab khác thì tạm dừng đếm.`}
-          </p>
-        </div>
-      )}
 
       {/* ══ BÀI TẬP — khối nổi bật, đặt cuối cùng ══ */}
       <section className="assignment-box">
