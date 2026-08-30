@@ -7,7 +7,6 @@ import {
   Lock,
   ShieldCheck,
   ArrowRight,
-  LayoutGrid,
   ChevronRight,
   Circle,
 } from "lucide-react";
@@ -18,23 +17,14 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
-import {
-  COURSE_OVERVIEW,
-  PARTS,
-  ALL_LESSONS,
-  POINTS_PER_SUBMISSION,
-  POINTS_PER_VIDEO,
-  type Lesson,
-} from "@/lib/lessons";
-
-const OVERVIEW = "__overview__";
+import { PARTS, ALL_LESSONS, POINTS_PER_VIDEO, type Lesson } from "@/lib/lessons";
 
 export function VideosPage() {
   const { user } = useAuth();
   const [watched, setWatched] = useState<Set<string>>(new Set());
   const [submitted, setSubmitted] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | null>(null);
-  const [selected, setSelected] = useState<string>(OVERVIEW);
+  const [selected, setSelected] = useState<string>(ALL_LESSONS[0]?.key ?? "");
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -104,13 +94,6 @@ export function VideosPage() {
 
           {/* Điện thoại: cuộn ngang · Máy tính: xếp dọc */}
           <div className="flex gap-1.5 overflow-x-auto pb-1 lg:flex-col lg:overflow-x-visible lg:pb-0">
-            <RailItem
-              active={selected === OVERVIEW}
-              onClick={() => setSelected(OVERVIEW)}
-              icon={<LayoutGrid className="h-3.5 w-3.5" />}
-              label="Tổng quan"
-            />
-
             {PARTS.map((part) => (
               <div key={part.key} className="contents lg:block">
                 <div className="hidden px-2 pb-1.5 pt-3.5 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground/80 lg:block">
@@ -141,21 +124,13 @@ export function VideosPage() {
 
       {/* ══ CỘT PHẢI — NỘI DUNG ══ */}
       <div className="min-w-0">
-        {current ? (
+        {current && (
           <LessonView
             lesson={current}
             isWatched={watched.has(current.key)}
             isSubmitted={submitted.has(current.key)}
             busy={busy === current.key}
             onToggle={() => toggleWatched(current)}
-          />
-        ) : (
-          <OverviewView
-            percent={percent}
-            doneVideos={doneVideos}
-            doneSubs={doneSubs}
-            total={total}
-            onStart={() => setSelected(ALL_LESSONS[0]?.key ?? OVERVIEW)}
           />
         )}
       </div>
@@ -311,87 +286,6 @@ function LessonView({
           </Link>
         </Button>
       </div>
-    </div>
-  );
-}
-
-function OverviewView({
-  percent,
-  doneVideos,
-  doneSubs,
-  total,
-  onStart,
-}: {
-  percent: number;
-  doneVideos: number;
-  doneSubs: number;
-  total: number;
-  onStart: () => void;
-}) {
-  return (
-    <div className="mx-auto max-w-[980px] space-y-5">
-      <PageHeader
-        eyebrow="Khoá huấn luyện"
-        title="Tổng"
-        accent="quan"
-        description={COURSE_OVERVIEW.intro}
-      />
-
-      <Card className="border-border bg-card/60 p-5">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="eyebrow">Tiến độ của bạn</div>
-            <div className="mt-1.5 text-[34px] font-black leading-none text-gradient-primary">{percent}%</div>
-          </div>
-          <div className="flex gap-6 text-sm">
-            <div>
-              <div className="font-bold text-foreground">
-                {doneVideos}
-                <span className="text-muted-foreground">/{total}</span>
-              </div>
-              <div className="text-[13px] text-muted-foreground">video đã xem</div>
-            </div>
-            <div>
-              <div className="font-bold text-foreground">
-                {doneSubs}
-                <span className="text-muted-foreground">/{total}</span>
-              </div>
-              <div className="text-[13px] text-muted-foreground">bài đã nộp</div>
-            </div>
-          </div>
-        </div>
-        <Progress value={percent} className="mt-4 h-2" />
-        <Button onClick={onStart} className="mt-4 bg-gradient-primary hover:opacity-90">
-          <PlayCircle className="mr-1.5 h-4 w-4" /> Bắt đầu học
-        </Button>
-      </Card>
-
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {COURSE_OVERVIEW.steps.map((s, i) => (
-          <Card key={s.title} className="border-border bg-card/50 p-4">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-primary text-xs font-black text-primary-foreground">
-              {i + 1}
-            </div>
-            <div className="mt-3 text-[15px] font-bold">{s.title}</div>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{s.description}</p>
-          </Card>
-        ))}
-      </div>
-
-      <Card className="border-border/60 bg-card/40 p-4">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px]">
-          <span className="eyebrow">Cách tính điểm</span>
-          {COURSE_OVERVIEW.scoring.map((s) => (
-            <span key={s.label} className="text-foreground/80">
-              {s.label} = <strong className="text-gold">{s.points} điểm</strong>
-            </span>
-          ))}
-          <span className="inline-flex items-center gap-1.5 text-foreground/80">
-            <ShieldCheck className="h-3.5 w-3.5 text-gold" />
-            Mỗi bài nộp = 1 khiên vàng ({POINTS_PER_SUBMISSION} điểm)
-          </span>
-        </div>
-      </Card>
     </div>
   );
 }

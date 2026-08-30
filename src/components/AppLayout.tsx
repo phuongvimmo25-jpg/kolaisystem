@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { GraduationCap, FileText, Trophy, LogOut, ShieldCheck, Pencil } from "lucide-react";
+import { Home, GraduationCap, FileText, Trophy, LogOut, ShieldCheck, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,12 +29,19 @@ import { CountdownBar } from "@/components/CountdownBar";
 import logo from "@/assets/logo.png";
 
 const NAV = [
-  { to: "/", label: "Bài giảng", icon: GraduationCap },
-  { to: "/bai-tap", label: "Nộp bài tập", icon: FileText },
+  { to: "/", label: "Trang chủ", icon: Home },
+  { to: "/bai-giang", label: "Bài giảng", icon: GraduationCap },
+  { to: "/bai-tap", label: "Nộp bài", icon: FileText },
   { to: "/vinh-danh", label: "Vinh danh", icon: Trophy },
 ] as const;
 
-function RenameDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+function RenameDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
   const { user } = useAuth();
   const { profile, refetch } = useProfile();
   const [name, setName] = useState("");
@@ -53,7 +60,10 @@ function RenameDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v:
     }
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase.from("profiles").update({ display_name: trimmed }).eq("id", user.id);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ display_name: trimmed })
+      .eq("id", user.id);
     setSaving(false);
     if (error) {
       toast.error("Không đổi được tên", { description: error.message });
@@ -69,10 +79,14 @@ function RenameDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v:
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Đổi tên hiển thị</DialogTitle>
-          <DialogDescription>Tên này hiện trên bảng Vinh danh cho mọi học viên cùng thấy.</DialogDescription>
+          <DialogDescription>
+            Tên này hiện trên bảng Vinh danh cho mọi học viên cùng thấy.
+          </DialogDescription>
         </DialogHeader>
         <div>
-          <Label htmlFor="display-name" className="text-xs">Tên hiển thị</Label>
+          <Label htmlFor="display-name" className="text-xs">
+            Tên hiển thị
+          </Label>
           <Input
             id="display-name"
             value={name}
@@ -83,8 +97,14 @@ function RenameDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v:
           />
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Huỷ</Button>
-          <Button onClick={saveName} disabled={saving} className="bg-gradient-primary hover:opacity-90">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Huỷ
+          </Button>
+          <Button
+            onClick={saveName}
+            disabled={saving}
+            className="bg-gradient-primary hover:opacity-90"
+          >
             {saving ? "Đang lưu..." : "Lưu"}
           </Button>
         </DialogFooter>
@@ -124,10 +144,18 @@ function AvatarMenu({ onRename }: { onRename: () => void }) {
           <span className="font-bold text-gold">{profile?.total_points ?? 0} điểm</span>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onRename(); }}>
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            onRename();
+          }}
+        >
           <Pencil className="mr-2 h-3.5 w-3.5" /> Đổi tên hiển thị
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => signOut()} className="text-destructive focus:text-destructive">
+        <DropdownMenuItem
+          onSelect={() => signOut()}
+          className="text-destructive focus:text-destructive"
+        >
           <LogOut className="mr-2 h-3.5 w-3.5" /> Đăng xuất
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -166,7 +194,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-all duration-200 ${
+                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold transition-all duration-200 ${
                     isActive(item.to)
                       ? "bg-gradient-primary text-primary-foreground shadow-[0_2px_12px_-2px_oklch(0.55_0.24_295/0.75)]"
                       : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
@@ -192,7 +220,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Thanh dưới cho điện thoại */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-sidebar/95 backdrop-blur-xl md:hidden">
-        <div className="grid grid-cols-3 pb-[env(safe-area-inset-bottom)]">
+        <div className="grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
           {NAV.map((item) => (
             <Link
               key={item.to}

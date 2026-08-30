@@ -14,6 +14,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as BaiTapRouteImport } from './routes/bai-tap'
+import { Route as BaiGiangRouteImport } from './routes/bai-giang'
 import { Route as IndexRouteImport } from './routes/index'
 
 const VinhDanhRoute = VinhDanhRouteImport.update({
@@ -41,6 +42,11 @@ const BaiTapRoute = BaiTapRouteImport.update({
   path: '/bai-tap',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BaiGiangRoute = BaiGiangRouteImport.update({
+  id: '/bai-giang',
+  path: '/bai-giang',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -49,6 +55,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/bai-giang': typeof BaiGiangRoute
   '/bai-tap': typeof BaiTapRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
@@ -57,6 +64,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bai-giang': typeof BaiGiangRoute
   '/bai-tap': typeof BaiTapRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
@@ -66,6 +74,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/bai-giang': typeof BaiGiangRoute
   '/bai-tap': typeof BaiTapRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
@@ -74,12 +83,27 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/bai-tap' | '/login' | '/privacy' | '/terms' | '/vinh-danh'
+  fullPaths:
+    | '/'
+    | '/bai-giang'
+    | '/bai-tap'
+    | '/login'
+    | '/privacy'
+    | '/terms'
+    | '/vinh-danh'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/bai-tap' | '/login' | '/privacy' | '/terms' | '/vinh-danh'
+  to:
+    | '/'
+    | '/bai-giang'
+    | '/bai-tap'
+    | '/login'
+    | '/privacy'
+    | '/terms'
+    | '/vinh-danh'
   id:
     | '__root__'
     | '/'
+    | '/bai-giang'
     | '/bai-tap'
     | '/login'
     | '/privacy'
@@ -89,6 +113,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BaiGiangRoute: typeof BaiGiangRoute
   BaiTapRoute: typeof BaiTapRoute
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -133,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BaiTapRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bai-giang': {
+      id: '/bai-giang'
+      path: '/bai-giang'
+      fullPath: '/bai-giang'
+      preLoaderRoute: typeof BaiGiangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -145,6 +177,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BaiGiangRoute: BaiGiangRoute,
   BaiTapRoute: BaiTapRoute,
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,

@@ -247,12 +247,12 @@
 .legend-frame {
   position: relative;
   border-radius: 1rem;
-  padding: 0.625rem 0.375rem 0.75rem;
+  padding: 0.5rem 0.375rem;
   overflow: hidden;
 }
 @media (min-width: 768px) {
   .legend-frame {
-    padding: 1rem 0.75rem 1.125rem;
+    padding: 0.875rem 0.75rem;
   }
 }
 .legend-frame::before {

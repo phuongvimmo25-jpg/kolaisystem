@@ -73,7 +73,7 @@ export function LeaderboardPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-[880px] space-y-4">
       {/* Ảnh bìa mỏng, tiêu đề đè lên để nhường chỗ cho bục vinh danh */}
       <div className="leaderboard-hero leaderboard-hero--slim h-[88px] md:h-[112px]">
         <img src={leaderboardHero} alt="" className="leaderboard-hero__img" loading="eager" />
@@ -180,19 +180,19 @@ function PodiumCard({
   if (!row) {
     return (
       <div className={featured ? "-mt-3 md:-mt-6" : ""}>
-        <div className="flex flex-col items-center rounded-2xl border border-dashed border-border/70 bg-card/25 px-2 py-4">
+        <div className="flex aspect-[3/4] flex-col items-center justify-center rounded-2xl border border-dashed border-border/70 bg-card/25 px-2">
           <div
             className={
-              "flex items-center justify-center rounded-full border border-dashed border-border text-muted-foreground/40 " +
-              (featured ? "h-16 w-16 md:h-20 md:w-20" : "h-12 w-12 md:h-16 md:w-16")
+              "flex aspect-square items-center justify-center rounded-full border border-dashed border-border text-muted-foreground/40 " +
+              (featured ? "w-[62%]" : "w-[56%]")
             }
           >
             <Crown className="h-5 w-5" />
           </div>
-          <div className="mt-2.5 rounded-full bg-muted/60 px-2.5 py-0.5 text-[10px] font-black tracking-[0.18em] text-muted-foreground">
+          <div className="mt-2 rounded-full bg-muted/60 px-2 py-0.5 text-[9px] font-black tracking-[0.14em] text-muted-foreground sm:text-[10px]">
             TOP {rank}
           </div>
-          <div className="mt-1.5 text-xs text-muted-foreground/70">Còn trống</div>
+          <div className="mt-1.5 text-[10px] text-muted-foreground/70 sm:text-xs">Còn trống</div>
         </div>
       </div>
     );
@@ -236,21 +236,21 @@ function PodiumCard({
 
   return (
     <div className={`relative ${featured ? "-mt-3 md:-mt-8" : ""}`}>
-      <div className={`legend-frame ${cfg.frame} ${cfg.bg} backdrop-blur-sm`}>
+      <div className={`legend-frame aspect-[3/4] ${cfg.frame} ${cfg.bg} backdrop-blur-sm`}>
         <div className="legend-shine" />
 
         {featured && (
           <Crown
-            className="absolute -top-4 left-1/2 z-10 h-9 w-9 -translate-x-1/2 text-gold drop-shadow-[0_0_14px_oklch(0.78_0.16_75/0.95)]"
+            className="absolute -top-3 left-1/2 z-10 h-6 w-6 -translate-x-1/2 text-gold drop-shadow-[0_0_14px_oklch(0.78_0.16_75/0.95)] sm:-top-4 sm:h-8 sm:w-8"
             fill="currentColor"
           />
         )}
 
-        <div className="relative flex flex-col items-center text-center">
+        <div className="relative flex h-full flex-col items-center justify-center text-center">
           <div
-            className={`relative ${
-              featured ? "h-24 w-24 sm:h-32 sm:w-32 md:h-44 md:w-44" : "h-[72px] w-[72px] sm:h-24 sm:w-24 md:h-32 md:w-32"
-            } flex items-center justify-center`}
+            className={`relative flex aspect-square items-center justify-center ${
+              featured ? "w-[58%] sm:w-[68%] md:w-[74%]" : "w-[52%] sm:w-[62%] md:w-[68%]"
+            }`}
           >
             <div className={`fire-ring ${cfg.fire}`} />
 
@@ -312,21 +312,21 @@ function PodiumCard({
           </div>
 
           <div
-            className={`mt-2.5 rounded-full px-2.5 py-0.5 text-[10px] font-black tracking-[0.18em] text-background shadow-lg md:px-3 md:text-[11px] ${cfg.tag}`}
+            className={`mt-1.5 rounded-full px-2 py-0.5 text-[9px] font-black tracking-[0.14em] text-background shadow-lg sm:mt-2.5 sm:px-2.5 sm:text-[10px] md:px-3 md:text-[11px] ${cfg.tag}`}
           >
             TOP {rank}
           </div>
 
-          <div className="mt-1.5 w-full truncate px-1 text-center text-[13px] font-black text-white drop-shadow md:text-[15px]">
+          <div className="mt-1 w-full truncate px-0.5 text-center text-[11px] font-black text-white drop-shadow sm:mt-1.5 sm:text-[13px] md:text-[15px]">
             {row.display_name}
           </div>
 
-          <div className={`mt-1 flex items-center gap-1 text-sm font-black md:text-base ${cfg.text}`}>
+          <div className={`mt-0.5 flex items-center gap-0.5 text-[13px] font-black sm:mt-1 sm:gap-1 sm:text-sm md:text-base ${cfg.text}`}>
             {row.total_points}
-            <Flame className="h-3.5 w-3.5 text-orange-400" />
+            <Flame className="h-3 w-3 text-orange-400 sm:h-3.5 sm:w-3.5" />
           </div>
 
-          <div className="mt-1.5">
+          <div className="mt-1.5 hidden sm:block">
             <Shields count={row.submission_count} />
           </div>
         </div>
