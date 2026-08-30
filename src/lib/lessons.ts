@@ -178,6 +178,33 @@ export function formatOpenDate(day: number): string {
   });
 }
 
+/** Lý do một ngày chưa mở được. */
+export type LockReason =
+  | { locked: false }
+  | { locked: true; kind: "date"; openDate: string }
+  | { locked: true; kind: "prev"; needDay: number };
+
+/**
+ * Ngày này đã mở cho học viên chưa.
+ * Phải thoả CẢ HAI: đã tới lịch, VÀ đã nộp bài của mọi ngày trước đó.
+ */
+export function dayLockState(
+  day: number,
+  submittedKeys: Set<string>,
+  now: Date = new Date(),
+): LockReason {
+  if (!isDayOpen(day, now)) {
+    return { locked: true, kind: "date", openDate: formatOpenDate(day) };
+  }
+  // Ngày trước chưa nộp thì chưa được học tiếp
+  for (const d of DAYS) {
+    if (d.day < day && !submittedKeys.has(d.key)) {
+      return { locked: true, kind: "prev", needDay: d.day };
+    }
+  }
+  return { locked: false };
+}
+
 export interface DeadlineInfo {
   day: Day;
   deadline: Date;

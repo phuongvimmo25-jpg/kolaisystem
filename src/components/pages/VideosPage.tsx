@@ -26,11 +26,11 @@ import {
   POINTS_PER_SUBMISSION,
   getDayDeadline,
   dayLabel,
-  isDayOpen,
-  formatOpenDate,
+  dayLockState,
   dayOfLesson,
   type Day,
   type Lesson,
+  type LockReason,
 } from "@/lib/lessons";
 
 export function VideosPage() {
@@ -107,7 +107,7 @@ export function VideosPage() {
           {/* Điện thoại: cuộn ngang · Máy tính: xếp dọc */}
           <div className="flex gap-1.5 overflow-x-auto pb-1 lg:flex-col lg:overflow-x-visible lg:pb-0">
             {DAYS.map((day) => {
-              const open = isDayOpen(day.day);
+              const open = !dayLockState(day.day, submitted).locked;
               return (
                 <div key={day.key} className="contents lg:block">
                   <div className="hidden items-center gap-1.5 px-2 pb-1.5 pt-3.5 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground/80 lg:flex">
@@ -149,6 +149,7 @@ export function VideosPage() {
           <LessonView
             lesson={current}
             day={dayOfLesson(current.key)}
+            lock={dayLockState(dayOfLesson(current.key)?.day ?? 1, submitted)}
             nextLesson={ALL_LESSONS[ALL_LESSONS.findIndex((l) => l.key === current.key) + 1]}
             isWatched={watched.has(current.key)}
             isSubmitted={submitted.has(current.key)}
@@ -209,6 +210,7 @@ function RailItem({
 function LessonView({
   lesson,
   day,
+  lock,
   nextLesson,
   isWatched,
   isSubmitted,
@@ -217,13 +219,14 @@ function LessonView({
 }: {
   lesson: Lesson;
   day?: Day;
+  lock: LockReason;
   nextLesson?: Lesson;
   isWatched: boolean;
   isSubmitted: boolean;
   busy: boolean;
   onCompleteNext: () => void;
 }) {
-  const isOpen = day ? isDayOpen(day.day) : true;
+  const isOpen = !lock.locked;
   const hasVideo = lesson.youtubeId.trim() !== "" && isOpen;
   const deadline = day ? getDayDeadline(day.day) : new Date();
 
@@ -248,10 +251,18 @@ function LessonView({
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-card/40 text-muted-foreground">
               <Lock className="h-10 w-10" />
               <span className="text-sm font-semibold">
-                {isOpen ? "Sắp ra mắt" : "Mở vào " + formatOpenDate(day?.day ?? 1)}
+                {isOpen
+                  ? "Sắp ra mắt"
+                  : lock.kind === "date"
+                    ? "Mở vào " + lock.openDate
+                    : "Nộp bài " + dayLabel(lock.needDay) + " trước đã"}
               </span>
               <span className="text-xs opacity-70">
-                {isOpen ? "Bài giảng này đang được quay" : "Quay lại đúng ngày để học nhé"}
+                {isOpen
+                  ? "Bài giảng này đang được quay"
+                  : lock.kind === "date"
+                    ? "Quay lại đúng ngày để học nhé"
+                    : "Hoàn thành ngày trước để mở ngày này"}
               </span>
             </div>
           )}

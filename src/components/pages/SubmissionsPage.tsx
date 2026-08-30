@@ -26,7 +26,7 @@ import {
   AdminReviewSlot,
 } from "@/components/ReviewComment";
 import { toast } from "sonner";
-import { DAYS, POINTS_PER_SUBMISSION, dayLabel, isDayOpen, formatOpenDate } from "@/lib/lessons";
+import { DAYS, POINTS_PER_SUBMISSION, dayLabel, dayLockState } from "@/lib/lessons";
 import { GRADING_DELAY_MS } from "@/lib/grading";
 import { gradeSubmission } from "@/fn/gradeSubmission";
 
@@ -215,6 +215,7 @@ export function SubmissionsPage() {
     load();
   };
 
+  const submittedKeys = new Set(Object.keys(subs));
   const done = DAYS.filter((d) => subs[d.key]).length;
 
   return (
@@ -241,7 +242,8 @@ export function SubmissionsPage() {
           const draft = drafts[day.key] ?? "";
           const dirty = draft.trim() !== (existing?.doc_url ?? "");
           const working = busy === day.key;
-          const open = isDayOpen(day.day);
+          const lock = dayLockState(day.day, submittedKeys);
+          const open = !lock.locked;
 
           return (
             <Card
@@ -295,10 +297,12 @@ export function SubmissionsPage() {
               </ul>
 
               {/* Ô nộp — hoặc khoá nếu chưa tới ngày */}
-              {!open ? (
+              {lock.locked ? (
                 <div className="mt-3 flex items-center gap-2 rounded-lg border border-dashed border-border/70 bg-background/30 px-3 py-2 text-[13px] text-muted-foreground">
                   <Lock className="h-3.5 w-3.5 shrink-0" />
-                  Mở vào ngày {formatOpenDate(day.day)}
+                  {lock.kind === "date"
+                    ? `Mở vào ngày ${lock.openDate}`
+                    : `Nộp bài ${dayLabel(lock.needDay)} trước đã`}
                 </div>
               ) : (
                 <div className="mt-3 flex gap-2">
