@@ -23,7 +23,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
  * Đồng hồ đếm ngược hạn nộp bài — viên nhỏ, bám giữa màn hình.
  * Tự nhảy sang bài kế tiếp khi qua ngày.
  */
-export function CountdownBar({ inline = false }: { inline?: boolean } = {}) {
+export function CountdownBar() {
   const { user } = useAuth();
   const [now, setNow] = useState(() => new Date());
   const [submitted, setSubmitted] = useState<Set<string>>(new Set());
@@ -46,7 +46,7 @@ export function CountdownBar({ inline = false }: { inline?: boolean } = {}) {
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel("countdown-submissions")
+      .channel("countdown-submissions-" + user.id)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "submissions", filter: `user_id=eq.${user.id}` },
@@ -62,7 +62,7 @@ export function CountdownBar({ inline = false }: { inline?: boolean } = {}) {
 
   if (!info) {
     return (
-      <Pill tone="done" inline={inline}>
+      <Pill tone="done">
         <Flag className="h-3 w-3 shrink-0" />
         <span>Đã hết hạn nộp bài</span>
       </Pill>
@@ -79,7 +79,7 @@ export function CountdownBar({ inline = false }: { inline?: boolean } = {}) {
 
   if (isSubmitted) {
     return (
-      <Pill tone="done" inline={inline}>
+      <Pill tone="done">
         <Check className="h-3 w-3 shrink-0" />
         <span>Đã nộp bài {info.lesson.code}</span>
         <span className="opacity-40">·</span>
@@ -90,7 +90,7 @@ export function CountdownBar({ inline = false }: { inline?: boolean } = {}) {
 
   return (
     <Link to="/bai-tap" hash={info.lesson.key}>
-      <Pill tone={urgent ? "urgent" : "normal"} interactive inline={inline}>
+      <Pill tone={urgent ? "urgent" : "normal"} interactive>
         <Clock3 className="h-3 w-3 shrink-0" />
         <span>Hạn bài {info.lesson.code}</span>
         <span className="opacity-40">·</span>
@@ -103,12 +103,10 @@ export function CountdownBar({ inline = false }: { inline?: boolean } = {}) {
 function Pill({
   tone,
   interactive,
-  inline,
   children,
 }: {
   tone: "normal" | "urgent" | "done";
   interactive?: boolean;
-  inline?: boolean;
   children: React.ReactNode;
 }) {
   const styles = {
@@ -117,23 +115,13 @@ function Pill({
     done: "border-emerald-500/30 bg-emerald-500/8 text-emerald-300/90",
   }[tone];
 
-  const pill = (
+  return (
     <div
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] leading-none backdrop-blur-md transition-colors ${styles} ${
+      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] leading-none backdrop-blur-md transition-colors ${styles} ${
         interactive ? "hover:border-primary/50 hover:text-foreground" : ""
       }`}
     >
       {children}
-    </div>
-  );
-
-  // Nam gon trong thanh tren
-  if (inline) return pill;
-
-  // Man hinh hep: bam giua duoi thanh tren
-  return (
-    <div className="pointer-events-none sticky top-14 z-30 flex justify-center px-4 pt-2">
-      <div className="pointer-events-auto">{pill}</div>
     </div>
   );
 }

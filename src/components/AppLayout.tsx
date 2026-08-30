@@ -179,19 +179,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </div>
           </nav>
 
-          <div className="ml-auto flex items-center gap-3 md:ml-0">
-            <div className="hidden lg:block">
-              <CountdownBar inline />
-            </div>
+          <div className="ml-auto flex min-w-0 items-center gap-2 md:gap-3">
+            <CountdownBar />
             <AvatarMenu onRename={() => setRenameOpen(true)} />
           </div>
         </div>
       </header>
-
-      {/* Đồng hồ tách dòng riêng khi màn hình hẹp */}
-      <div className="lg:hidden">
-        <CountdownBar />
-      </div>
 
       <main className="flex-1 pb-20 md:pb-8">
         <div className="mx-auto max-w-[1400px] px-4 py-5 md:px-6">{children}</div>
