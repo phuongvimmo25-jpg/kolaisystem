@@ -103,14 +103,12 @@ export function LeaderboardPage() {
         </div>
       </div>
 
-      {/* Bục vinh danh TOP 1-2-3 */}
-      {top3.length > 0 && (
-        <div className="grid grid-cols-3 items-end gap-2 pt-2 sm:gap-3 md:gap-5 md:pt-4">
-          <PodiumCard row={top3[1]} rank={2} variant="purple" />
-          <PodiumCard row={top3[0]} rank={1} variant="gold" featured />
-          <PodiumCard row={top3[2]} rank={3} variant="ruby" />
-        </div>
-      )}
+      {/* Bục vinh danh — luôn hiện đủ 3 ô để thấy rõ cấu trúc 1-2-3 */}
+      <div className="grid grid-cols-3 items-end gap-2 pt-1 sm:gap-3 md:gap-4">
+        <PodiumCard row={top3[1]} rank={2} variant="purple" />
+        <PodiumCard row={top3[0]} rank={1} variant="gold" featured />
+        <PodiumCard row={top3[2]} rank={3} variant="ruby" />
+      </div>
 
       {loading && rows.length === 0 && (
         <Card className="border-border bg-card/60 p-10 text-center text-[15px] text-muted-foreground">
@@ -179,7 +177,26 @@ function PodiumCard({
   variant: "gold" | "purple" | "ruby";
   featured?: boolean;
 }) {
-  if (!row) return <div />;
+  if (!row) {
+    return (
+      <div className={featured ? "-mt-3 md:-mt-6" : ""}>
+        <div className="flex flex-col items-center rounded-2xl border border-dashed border-border/70 bg-card/25 px-2 py-4">
+          <div
+            className={
+              "flex items-center justify-center rounded-full border border-dashed border-border text-muted-foreground/40 " +
+              (featured ? "h-16 w-16 md:h-20 md:w-20" : "h-12 w-12 md:h-16 md:w-16")
+            }
+          >
+            <Crown className="h-5 w-5" />
+          </div>
+          <div className="mt-2.5 rounded-full bg-muted/60 px-2.5 py-0.5 text-[10px] font-black tracking-[0.18em] text-muted-foreground">
+            TOP {rank}
+          </div>
+          <div className="mt-1.5 text-xs text-muted-foreground/70">Còn trống</div>
+        </div>
+      </div>
+    );
+  }
 
   const cfg = {
     gold: {
@@ -295,22 +312,22 @@ function PodiumCard({
           </div>
 
           <div
-            className={`mt-3 rounded-full px-3.5 py-1 text-[10px] font-black tracking-[0.2em] text-background shadow-lg md:text-xs ${cfg.tag}`}
+            className={`mt-2.5 rounded-full px-2.5 py-0.5 text-[10px] font-black tracking-[0.18em] text-background shadow-lg md:px-3 md:text-[11px] ${cfg.tag}`}
           >
             TOP {rank}
           </div>
 
-          <div className="mt-2.5 max-w-full truncate px-1 text-[15px] font-black text-white drop-shadow md:text-lg">
+          <div className="mt-1.5 w-full truncate px-1 text-center text-[13px] font-black text-white drop-shadow md:text-[15px]">
             {row.display_name}
           </div>
 
-          <div className="mt-2">
-            <Shields count={row.submission_count} size="md" />
+          <div className={`mt-1 flex items-center gap-1 text-sm font-black md:text-base ${cfg.text}`}>
+            {row.total_points}
+            <Flame className="h-3.5 w-3.5 text-orange-400" />
           </div>
 
-          <div className={`mt-1.5 flex items-center gap-1 text-base font-black md:text-xl ${cfg.text}`}>
-            {row.total_points}
-            <Flame className="h-4 w-4 text-orange-400" />
+          <div className="mt-1.5">
+            <Shields count={row.submission_count} />
           </div>
         </div>
       </div>
