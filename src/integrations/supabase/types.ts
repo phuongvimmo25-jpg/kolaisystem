@@ -105,8 +105,11 @@ export type Database = {
           streak: number
           submission_count: number
           total_points: number
+          onboarded_at: string | null
           updated_at: string
           watched_count: number
+          zalo_name: string | null
+          zalo_phone: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -120,8 +123,11 @@ export type Database = {
           streak?: number
           submission_count?: number
           total_points?: number
+          onboarded_at?: string | null
           updated_at?: string
           watched_count?: number
+          zalo_name?: string | null
+          zalo_phone?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -135,8 +141,11 @@ export type Database = {
           streak?: number
           submission_count?: number
           total_points?: number
+          onboarded_at?: string | null
           updated_at?: string
           watched_count?: number
+          zalo_name?: string | null
+          zalo_phone?: string | null
         }
         Relationships: []
       }

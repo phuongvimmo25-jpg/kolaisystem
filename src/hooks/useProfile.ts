@@ -12,6 +12,8 @@ export interface Profile {
   total_points: number;
   submission_count: number;
   watched_count: number;
+  zalo_name: string | null;
+  onboarded_at: string | null;
   current_milestone: number;
   start_date: string;
   last_active_date: string | null;
