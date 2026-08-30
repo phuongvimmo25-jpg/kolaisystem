@@ -186,7 +186,7 @@ export function SubmissionsPage() {
   };
 
   const saveAdminReview = async () => {
-    if (!editing) return;
+    if (!editing || !user) return;
     const note = adminNote.trim();
     if (!note) {
       toast.error("Chưa có nhận xét");
@@ -202,6 +202,7 @@ export function SubmissionsPage() {
     const { error } = await supabase
       .from("submissions")
       .update({ admin_score: num, admin_feedback: note, admin_at: new Date().toISOString() })
+      .eq("user_id", user.id)
       .eq("lesson_key", editing.lesson_key);
     setSavingAdmin(false);
 

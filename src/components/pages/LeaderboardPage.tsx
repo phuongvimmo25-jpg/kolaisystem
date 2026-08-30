@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { AdminMemberDialog, type MemberBrief } from "@/components/AdminMemberDialog";
 import { ALL_LESSONS } from "@/lib/lessons";
 import leaderboardHero from "@/assets/leaderboard-hero.jpg";
 
@@ -55,6 +57,8 @@ export function LeaderboardPage() {
   const { user } = useAuth();
   const [rows, setRows] = useState<LeaderRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isAdmin } = useIsAdmin();
+  const [viewing, setViewing] = useState<MemberBrief | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -115,9 +119,25 @@ export function LeaderboardPage() {
 
       {/* Bục vinh danh — luôn hiện đủ 3 ô để thấy rõ cấu trúc 1-2-3 */}
       <div className="grid grid-cols-3 items-end gap-2 pt-1 sm:gap-3 md:gap-4">
-        <PodiumCard row={top3[1]} rank={2} variant="purple" />
-        <PodiumCard row={top3[0]} rank={1} variant="gold" featured />
-        <PodiumCard row={top3[2]} rank={3} variant="ruby" />
+        <PodiumCard
+          row={top3[1]}
+          rank={2}
+          variant="purple"
+          onOpen={isAdmin ? setViewing : undefined}
+        />
+        <PodiumCard
+          row={top3[0]}
+          rank={1}
+          variant="gold"
+          featured
+          onOpen={isAdmin ? setViewing : undefined}
+        />
+        <PodiumCard
+          row={top3[2]}
+          rank={3}
+          variant="ruby"
+          onOpen={isAdmin ? setViewing : undefined}
+        />
       </div>
 
       {loading && rows.length === 0 && (
@@ -168,9 +188,10 @@ export function LeaderboardPage() {
                   return (
                     <Card
                       key={r.id}
+                      onClick={() => isAdmin && setViewing(r)}
                       className={`member-row flex items-center gap-3 rounded-xl p-3 ${
                         r.id === user?.id ? "member-row-self" : ""
-                      }`}
+                      } ${isAdmin ? "cursor-pointer transition hover:border-gold/40" : ""}`}
                     >
                       <div className="w-8 bg-gradient-to-b from-foreground/80 to-foreground/40 bg-clip-text text-center text-sm font-black text-transparent">
                         #{rankNo}
@@ -207,6 +228,8 @@ export function LeaderboardPage() {
           );
         })}
       </div>
+
+      <AdminMemberDialog member={viewing} onClose={() => setViewing(null)} onSaved={load} />
     </div>
   );
 }
@@ -216,11 +239,13 @@ function PodiumCard({
   rank,
   variant,
   featured,
+  onOpen,
 }: {
   row?: LeaderRow;
   rank: number;
   variant: "gold" | "purple" | "ruby";
   featured?: boolean;
+  onOpen?: (row: LeaderRow) => void;
 }) {
   if (!row) {
     return (
@@ -280,7 +305,10 @@ function PodiumCard({
   const romanText = " ✦ I ✦ II ✦ III ✦ IV ✦ V ✦ VI ✦ VII ✦ VIII ✦ IX ✦ X ✦ XI ✦ XII ✦ ";
 
   return (
-    <div className={`relative ${featured ? "-mt-3 md:-mt-8" : ""}`}>
+    <div
+      className={`relative ${featured ? "-mt-3 md:-mt-8" : ""} ${onOpen ? "cursor-pointer" : ""}`}
+      onClick={() => onOpen?.(row)}
+    >
       <div className={`legend-frame aspect-[3/4] ${cfg.frame} ${cfg.bg} backdrop-blur-sm`}>
         <div className="legend-shine" />
 
