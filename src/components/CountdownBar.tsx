@@ -23,7 +23,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
  * Đồng hồ đếm ngược hạn nộp bài — viên nhỏ, bám giữa màn hình.
  * Tự nhảy sang bài kế tiếp khi qua ngày.
  */
-export function CountdownBar() {
+export function CountdownBar({ inline = false }: { inline?: boolean } = {}) {
   const { user } = useAuth();
   const [now, setNow] = useState(() => new Date());
   const [submitted, setSubmitted] = useState<Set<string>>(new Set());
@@ -62,7 +62,7 @@ export function CountdownBar() {
 
   if (!info) {
     return (
-      <Pill tone="done">
+      <Pill tone="done" inline={inline}>
         <Flag className="h-3 w-3 shrink-0" />
         <span>Đã hết hạn nộp bài</span>
       </Pill>
@@ -79,7 +79,7 @@ export function CountdownBar() {
 
   if (isSubmitted) {
     return (
-      <Pill tone="done">
+      <Pill tone="done" inline={inline}>
         <Check className="h-3 w-3 shrink-0" />
         <span>Đã nộp bài {info.lesson.code}</span>
         <span className="opacity-40">·</span>
@@ -90,7 +90,7 @@ export function CountdownBar() {
 
   return (
     <Link to="/bai-tap" hash={info.lesson.key}>
-      <Pill tone={urgent ? "urgent" : "normal"} interactive>
+      <Pill tone={urgent ? "urgent" : "normal"} interactive inline={inline}>
         <Clock3 className="h-3 w-3 shrink-0" />
         <span>Hạn bài {info.lesson.code}</span>
         <span className="opacity-40">·</span>
@@ -103,10 +103,12 @@ export function CountdownBar() {
 function Pill({
   tone,
   interactive,
+  inline,
   children,
 }: {
   tone: "normal" | "urgent" | "done";
   interactive?: boolean;
+  inline?: boolean;
   children: React.ReactNode;
 }) {
   const styles = {
@@ -115,15 +117,23 @@ function Pill({
     done: "border-emerald-500/30 bg-emerald-500/8 text-emerald-300/90",
   }[tone];
 
+  const pill = (
+    <div
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] leading-none backdrop-blur-md transition-colors ${styles} ${
+        interactive ? "hover:border-primary/50 hover:text-foreground" : ""
+      }`}
+    >
+      {children}
+    </div>
+  );
+
+  // Nam gon trong thanh tren
+  if (inline) return pill;
+
+  // Man hinh hep: bam giua duoi thanh tren
   return (
-    <div className="pointer-events-none sticky top-2 z-20 flex justify-center px-4">
-      <div
-        className={`pointer-events-auto inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] leading-none backdrop-blur-md transition-colors ${styles} ${
-          interactive ? "hover:border-primary/50 hover:text-foreground" : ""
-        }`}
-      >
-        {children}
-      </div>
+    <div className="pointer-events-none sticky top-14 z-30 flex justify-center px-4 pt-2">
+      <div className="pointer-events-auto">{pill}</div>
     </div>
   );
 }
