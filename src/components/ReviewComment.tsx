@@ -88,13 +88,21 @@ export function ReviewLoading({ reviewer = DEFAULT_REVIEWER }: { reviewer?: Revi
 }
 
 /** Không đọc được tài liệu. */
-export function ReviewError({ message }: { message: string }) {
+export function ReviewError({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <div className="mt-3 flex gap-2.5 rounded-xl border border-red-500/30 bg-red-500/[0.06] p-3">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
       <div className="min-w-0 flex-1">
         <div className="text-[13px] font-bold text-red-300">Chưa chấm được bài này</div>
         <p className="mt-0.5 text-[13px] leading-relaxed text-red-200/80">{message}</p>
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="mt-2 rounded-lg border border-red-400/40 bg-red-500/10 px-2.5 py-1 text-xs font-bold text-red-200 transition hover:bg-red-500/20"
+          >
+            Đã sửa quyền · Chấm lại
+          </button>
+        )}
       </div>
     </div>
   );

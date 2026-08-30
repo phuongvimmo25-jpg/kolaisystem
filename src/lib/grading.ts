@@ -83,3 +83,9 @@ export interface GradeResult {
   diem: number;
   nhan_xet: string;
 }
+
+/** Kết quả trả về của hàm chấm bài phía máy chủ. */
+export type GradeOutcome =
+  | { alreadyGraded: true }
+  | { score: number; feedback: string }
+  | { error: string };

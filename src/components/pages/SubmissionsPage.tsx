@@ -27,7 +27,7 @@ import {
 } from "@/components/ReviewComment";
 import { toast } from "sonner";
 import { DAYS, POINTS_PER_SUBMISSION, dayLabel, dayLockState } from "@/lib/lessons";
-import { GRADING_DELAY_MS } from "@/lib/grading";
+import { GRADING_DELAY_MS, type GradeOutcome } from "@/lib/grading";
 import { gradeSubmission } from "@/fn/gradeSubmission";
 
 interface Submission {
@@ -92,11 +92,14 @@ export function SubmissionsPage() {
   }, [load]);
 
   /** Gọi chấm bài — gửi kèm token của chính học viên. */
-  const runGrading = useCallback(async (dayKey: string) => {
+  const runGrading = useCallback(async (dayKey: string): Promise<GradeOutcome | null> => {
     const { data: sess } = await supabase.auth.getSession();
     const token = sess.session?.access_token;
-    if (!token) return;
-    await gradeSubmission({ data: { lessonKey: dayKey, accessToken: token } });
+    if (!token) return null;
+    // Lớp RPC của TanStack không suy ra được kiểu trả về, nên khai báo tường minh
+    return (await gradeSubmission({
+      data: { lessonKey: dayKey, accessToken: token },
+    })) as unknown as GradeOutcome;
   }, []);
 
   // Nhịp 20 giây để đếm ngược tới lúc Phong phản hồi
@@ -171,6 +174,14 @@ export function SubmissionsPage() {
     // nhưng không phụ thuộc học viên có mở lại trang hay không.
     setGrading((prev) => new Set(prev).add(dayKey));
     runGrading(dayKey)
+      .then((res) => {
+        if (res && "error" in res && res.error) {
+          toast.error("Chưa đọc được bài của bạn", {
+            description: res.error,
+            duration: 12000,
+          });
+        }
+      })
       .catch(() => {
         /* lỗi mạng — vòng lặp nền sẽ thử lại */
       })
@@ -182,6 +193,32 @@ export function SubmissionsPage() {
         });
         load();
       });
+  };
+
+  /** Chấm lại sau khi học viên đã sửa quyền tài liệu. */
+  const retryGrading = async (dayKey: string) => {
+    if (!user) return;
+    setGrading((prev) => new Set(prev).add(dayKey));
+    // Xoá dấu đã chấm để hàm chấm chạy lại từ đầu
+    await supabase
+      .from("submissions")
+      .update({ graded_at: null, grade_error: null })
+      .eq("user_id", user.id)
+      .eq("lesson_key", dayKey);
+
+    const res = await runGrading(dayKey).catch(() => null);
+    setGrading((prev) => {
+      const n = new Set(prev);
+      n.delete(dayKey);
+      return n;
+    });
+
+    if (res && "error" in res && res.error) {
+      toast.error("Vẫn chưa đọc được", { description: res.error, duration: 12000 });
+    } else if (res && "score" in res) {
+      toast.success("Đã chấm xong!");
+    }
+    load();
   };
 
   const remove = async (dayKey: string) => {
@@ -371,6 +408,7 @@ export function SubmissionsPage() {
                   isGrading={grading.has(day.key)}
                   now={now}
                   isAdmin={isAdmin}
+                  onRetry={() => retryGrading(day.key)}
                   onAdminEdit={() => openAdminEditor(existing)}
                   reviewer={
                     reviewerProfile
@@ -454,6 +492,7 @@ function ReviewBlock({
   isGrading,
   now,
   isAdmin,
+  onRetry,
   onAdminEdit,
   reviewer,
 }: {
@@ -461,6 +500,7 @@ function ReviewBlock({
   isGrading: boolean;
   now: number;
   isAdmin?: boolean;
+  onRetry?: () => void;
   onAdminEdit?: () => void;
   reviewer?: { name: string; avatarUrl: string | null };
 }) {
@@ -471,7 +511,7 @@ function ReviewBlock({
     <>
       {/* Khối 1 — nhận xét tự động */}
       {sub.grade_error ? (
-        <ReviewError message={sub.grade_error} />
+        <ReviewError message={sub.grade_error} onRetry={onRetry} />
       ) : sub.ai_feedback ? (
         <ReviewComment score={sub.ai_score} feedback={sub.ai_feedback} reviewer={reviewer} />
       ) : isGrading ? (

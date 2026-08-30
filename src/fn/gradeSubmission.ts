@@ -8,6 +8,7 @@ import {
   buildAssignmentBrief,
   extractGoogleDocId,
   type GradeResult,
+  type GradeOutcome,
 } from "@/lib/grading";
 
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
@@ -93,7 +94,7 @@ async function callGemini(apiKey: string, pdfBase64: string, userText: string) {
  */
 export const gradeSubmission = createServerFn({ method: "POST" })
   .inputValidator((data: { lessonKey: string; accessToken: string }) => data)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<GradeOutcome> => {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error("Máy chủ chưa cấu hình GEMINI_API_KEY.");
 
@@ -125,7 +126,7 @@ export const gradeSubmission = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!sub) throw new Error("Chưa có bài nộp cho bài này.");
-    if (sub.graded_at) return { alreadyGraded: true as const };
+    if (sub.graded_at) return { alreadyGraded: true };
 
     const { data: profile } = await supabase
       .from("profiles")
