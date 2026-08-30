@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { ShieldCheck, ExternalLink, Check, X, CircleDashed, Lock } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ShieldCheck, ExternalLink, Check, X, CircleDashed, Lock, PlayCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -326,6 +327,8 @@ export function SubmissionsPage() {
           const working = busy === day.key;
           const lock = submitLockState(day, submittedKeys, watched);
           const open = !lock.locked;
+          const watchedInDay = day.lessons.filter((l) => watched.has(l.key)).length;
+          const missingVideo = watchedInDay < day.lessons.length;
 
           return (
             <Card
@@ -422,6 +425,28 @@ export function SubmissionsPage() {
                       <X className="h-4 w-4" />
                     </Button>
                   )}
+                </div>
+              )}
+
+              {/* Đã nộp nhưng chưa xem hết video — nhắc nhẹ, không xoá bài */}
+              {existing && missingVideo && (
+                <div className="mt-3 flex flex-wrap items-center gap-2.5 rounded-xl border border-gold/30 bg-gold/[0.07] px-3 py-2.5">
+                  <PlayCircle className="h-4 w-4 shrink-0 text-gold" />
+                  <p className="min-w-0 flex-1 text-[13px] leading-relaxed text-foreground/85">
+                    Bạn mới xem{" "}
+                    <b className="text-gold">
+                      {watchedInDay}/{day.lessons.length}
+                    </b>{" "}
+                    video của ngày này. Xem hết để nắm chắc bài nhé.
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    asChild
+                    className="h-8 shrink-0 border-gold/40 text-gold hover:bg-gold/15"
+                  >
+                    <Link to="/bai-giang">Xem bài giảng</Link>
+                  </Button>
                 </div>
               )}
 

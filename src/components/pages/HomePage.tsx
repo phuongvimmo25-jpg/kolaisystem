@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { Card } from "@/components/ui/card";
 import { ALL_LESSONS, DAYS, COURSE_INTRO, currentDeadline, dayLabel } from "@/lib/lessons";
+import { PlayCircle } from "lucide-react";
 import homeHero from "@/assets/home-hero.jpg";
 
 /** Huy hiệu tính thẳng từ tiến độ — không cần bảng riêng, không bao giờ lệch số liệu. */
@@ -106,6 +107,26 @@ export function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Đã nộp bài nhưng chưa xem hết video — nhắc nhẹ */}
+      {subs > 0 && watched < totalVideos && (
+        <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-gold/30 bg-gold/[0.07] px-4 py-3">
+          <PlayCircle className="h-4 w-4 shrink-0 text-gold" />
+          <p className="min-w-0 flex-1 text-[13px] leading-relaxed text-foreground/85">
+            Bạn đã nộp bài nhưng mới xem{" "}
+            <b className="text-gold">
+              {watched}/{totalVideos}
+            </b>{" "}
+            video. Xem hết để nắm chắc kiến thức nhé.
+          </p>
+          <Link
+            to="/bai-giang"
+            className="shrink-0 rounded-lg border border-gold/40 bg-gold/10 px-3 py-1.5 text-xs font-bold text-gold transition hover:bg-gold/20"
+          >
+            Xem bài giảng
+          </Link>
+        </div>
+      )}
 
       {/* ══ 2. VIDEO TỔNG QUAN + LỜI KÊU GỌI ══ */}
       <section className="intro-panel">
