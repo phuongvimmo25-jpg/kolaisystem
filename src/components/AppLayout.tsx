@@ -186,10 +186,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </span>
           </Link>
 
-          {/* Segmented control — gọn, nổi bật mục đang mở */}
+          {/* Segmented control — bỏ Trang chủ vì tên trang đã hiện ở bên trái */}
           <nav className="hidden flex-1 justify-center md:flex">
             <div className="inline-flex items-center gap-0.5 rounded-full border border-gold/25 bg-card/60 p-1 shadow-[inset_0_1px_0_oklch(1_0_0/0.05)]">
-              {NAV.map((item) => (
+              {NAV.filter((n) => n.to !== "/").map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
