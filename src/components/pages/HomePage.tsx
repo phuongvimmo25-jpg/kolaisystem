@@ -8,12 +8,13 @@ import {
   Flame,
   ArrowRight,
   Lock,
+  Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { Card } from "@/components/ui/card";
-import { ALL_LESSONS, PARTS, currentDeadline } from "@/lib/lessons";
+import { ALL_LESSONS, PARTS, COURSE_INTRO, currentDeadline } from "@/lib/lessons";
 import homeHero from "@/assets/home-hero.jpg";
 
 /** Huy hiệu tính thẳng từ tiến độ — không cần bảng riêng, không bao giờ lệch số liệu. */
@@ -92,12 +93,13 @@ export function HomePage() {
   const points = profile?.total_points ?? 0;
   const total = ALL_LESSONS.length;
   const percent = total === 0 ? 0 : Math.round(((watched + subs) / (total * 2)) * 100);
+  const started = watched + subs > 0;
 
   const ctx = { subs, watched, rank, total };
   const next = currentDeadline();
 
   return (
-    <div className="mx-auto max-w-[980px] space-y-5">
+    <div className="mx-auto max-w-[980px] space-y-6">
       {/* ══ BÌA + LỜI CHÀO ══ */}
       <div className="hero-cover">
         <img src={homeHero} alt="KOL AI SYSTEM" className="hero-cover__img" loading="eager" />
@@ -125,7 +127,6 @@ export function HomePage() {
             {rank > 0 && <div className="hero-chip hero-chip--purple">Hạng #{rank}</div>}
           </div>
 
-          {/* Thanh tiến độ mảnh, nằm luôn trong bìa cho gọn */}
           <div className="mt-1 flex items-center gap-2.5">
             <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/15">
               <div
@@ -137,6 +138,46 @@ export function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* ══ VIDEO TỔNG QUAN + LỜI KÊU GỌI ══ */}
+      <section className="intro-panel">
+        <div className="mb-4 text-center">
+          <div className="eyebrow">{COURSE_INTRO.eyebrow}</div>
+          <h2 className="mt-2 text-[22px] font-black md:text-[30px]">
+            <span className="text-gradient-gold">{COURSE_INTRO.title}</span>
+          </h2>
+          <p className="mx-auto mt-2.5 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+            {COURSE_INTRO.description}
+          </p>
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-gold/25 bg-black shadow-[0_24px_70px_-30px_oklch(0.78_0.16_75/0.55)]">
+          <div className="relative aspect-video w-full">
+            <iframe
+              className="absolute inset-0 h-full w-full"
+              src={
+                "https://www.youtube-nocookie.com/embed/" +
+                COURSE_INTRO.youtubeId +
+                "?rel=0&modestbranding=1"
+              }
+              title={COURSE_INTRO.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+
+        <div className="mt-5 flex flex-col items-center gap-2">
+          <Link to="/bai-giang" className="cta-start group">
+            <Sparkles className="h-[18px] w-[18px]" />
+            {started ? "Tiếp tục hành trình" : "Bắt Đầu Hành Trình"}
+            <ArrowRight className="h-[18px] w-[18px] transition-transform group-hover:translate-x-1" />
+          </Link>
+          <p className="text-xs text-muted-foreground">
+            {total} bài giảng · nộp bài nhận khiên vàng · leo bảng Vinh danh
+          </p>
+        </div>
+      </section>
 
       {/* ══ ĐI TIẾP ĐÂU ══ */}
       <div className="grid gap-3 sm:grid-cols-3">

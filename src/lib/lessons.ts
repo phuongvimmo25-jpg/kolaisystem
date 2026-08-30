@@ -57,6 +57,18 @@ export const COURSE_OVERVIEW = {
   ],
 };
 
+/**
+ * Video giới thiệu ở Trang chủ — xem trước khi vào học.
+ * Đổi `youtubeId` để thay video khác.
+ */
+export const COURSE_INTRO = {
+  youtubeId: "XAcAxlUrEHU",
+  eyebrow: "Bắt đầu từ đây",
+  title: "Tổng quan hành trình",
+  description:
+    "Dành 10 phút xem video này trước. Bạn sẽ hiểu toàn bộ lộ trình, cách hệ thống chấm điểm, và điều gì đang chờ ở cuối chặng đường.",
+};
+
 export const PARTS: Part[] = [
   {
     key: "phan-1",

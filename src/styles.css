@@ -436,6 +436,74 @@
       oklch(0.08 0.015 280 / 0.35) 100%);
 }
 
+/* ══ KHỐI GIỚI THIỆU Ở TRANG CHỦ ══ */
+.intro-panel {
+  position: relative;
+  border-radius: 1.5rem;
+  padding: clamp(1.1rem, 3vw, 2rem);
+  border: 1px solid oklch(0.78 0.16 75 / 0.18);
+  background:
+    radial-gradient(ellipse 70% 60% at 50% -10%, oklch(0.78 0.16 75 / 0.14), transparent 65%),
+    linear-gradient(180deg, oklch(0.14 0.02 285 / 0.9), oklch(0.1 0.015 285 / 0.85));
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.05),
+    0 24px 70px -40px oklch(0.78 0.16 75 / 0.4);
+  overflow: hidden;
+}
+
+/* ══ NÚT BẮT ĐẦU HÀNH TRÌNH ══ */
+.cta-start {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.75rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--gold-foreground);
+  background-image: linear-gradient(135deg, oklch(0.86 0.15 85), oklch(0.72 0.17 55));
+  box-shadow:
+    0 10px 30px -10px oklch(0.78 0.16 75 / 0.75),
+    inset 0 1px 0 oklch(1 0 0 / 0.35);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: cta-pulse 3.2s ease-in-out infinite;
+}
+.cta-start:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 16px 40px -10px oklch(0.78 0.16 75 / 0.9),
+    inset 0 1px 0 oklch(1 0 0 / 0.4);
+}
+.cta-start:active { transform: translateY(0); }
+
+/* Vệt sáng quét ngang mặt nút */
+.cta-start::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, oklch(1 0 0 / 0.55) 50%, transparent 65%);
+  background-size: 250% 100%;
+  background-position: 200% 0;
+  animation: cta-shine 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes cta-shine {
+  0%, 55% { background-position: 200% 0; }
+  100%    { background-position: -60% 0; }
+}
+@keyframes cta-pulse {
+  0%, 100% { box-shadow: 0 10px 30px -10px oklch(0.78 0.16 75 / 0.7), inset 0 1px 0 oklch(1 0 0 / 0.35); }
+  50%      { box-shadow: 0 14px 38px -10px oklch(0.78 0.16 75 / 0.95), inset 0 1px 0 oklch(1 0 0 / 0.4); }
+}
+
+/* Tôn trọng người dùng tắt hiệu ứng chuyển động */
+@media (prefers-reduced-motion: reduce) {
+  .cta-start, .cta-start::after { animation: none; }
+}
+
 /* === HERO COVER — bìa Dashboard, lấy cảm hứng đen + vàng gold === */
 .hero-cover {
   position: relative;
