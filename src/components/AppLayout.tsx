@@ -173,31 +173,30 @@ export function AppLayout({ children }: { children: ReactNode }) {
       {/* ── Thanh trên: logo · 3 tab dạng segmented · đồng hồ · avatar ── */}
       <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-2 px-4 md:gap-3 md:px-6">
-          <Link to="/" className="flex shrink-0 items-center gap-2">
+          <Link to="/" className="flex min-w-0 shrink items-center gap-2">
             <img
               src={logo}
-              alt="KOL AI SYSTEM"
+              alt=""
               width={28}
               height={28}
-              className="drop-shadow-[0_0_10px_oklch(0.6_0.24_295/0.55)]"
+              className="shrink-0 drop-shadow-[0_0_10px_oklch(0.78_0.16_75/0.5)]"
             />
-            <span className="hidden text-[13px] font-black leading-none tracking-tight sm:inline">
-              <span className="text-foreground">KOL AI </span>
-              <span className="text-gradient-primary">SYSTEM</span>
+            <span className="truncate text-[15px] font-black leading-none tracking-tight text-foreground">
+              {NAV.find((n) => isActive(n.to))?.label ?? "Trang chủ"}
             </span>
           </Link>
 
           {/* Segmented control — gọn, nổi bật mục đang mở */}
           <nav className="hidden flex-1 justify-center md:flex">
-            <div className="inline-flex items-center gap-0.5 rounded-full border border-border/70 bg-card/50 p-1">
+            <div className="inline-flex items-center gap-0.5 rounded-full border border-gold/25 bg-card/60 p-1 shadow-[inset_0_1px_0_oklch(1_0_0/0.05)]">
               {NAV.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
                   className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold transition-all duration-200 ${
                     isActive(item.to)
-                      ? "bg-gradient-primary text-primary-foreground shadow-[0_2px_12px_-2px_oklch(0.55_0.24_295/0.75)]"
-                      : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
+                      ? "bg-gradient-gold text-gold-foreground shadow-[0_2px_14px_-2px_oklch(0.78_0.16_75/0.8)] ring-1 ring-gold/50"
+                      : "text-muted-foreground hover:bg-gold/10 hover:text-gold"
                   }`}
                 >
                   <item.icon className="h-3.5 w-3.5" />
@@ -225,12 +224,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <Link
               key={item.to}
               to={item.to}
-              className={`flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-semibold transition ${
-                isActive(item.to) ? "text-primary" : "text-muted-foreground"
+              className={`relative flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-semibold transition ${
+                isActive(item.to) ? "text-gold" : "text-muted-foreground"
               }`}
             >
+              {isActive(item.to) && (
+                <span className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-gradient-gold" />
+              )}
               <item.icon
-                className={`h-5 w-5 ${isActive(item.to) ? "drop-shadow-[0_0_6px_oklch(0.6_0.24_295/0.8)]" : ""}`}
+                className={`h-5 w-5 ${isActive(item.to) ? "drop-shadow-[0_0_7px_oklch(0.78_0.16_75/0.85)]" : ""}`}
               />
               {item.label}
             </Link>

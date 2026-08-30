@@ -445,10 +445,10 @@
   border-radius: 1.25rem;
   overflow: hidden;
   isolation: isolate;
-  border: 1px solid oklch(0.45 0.12 70 / 0.35);
+  border: 1px solid oklch(0.78 0.16 75 / 0.28);
   box-shadow:
-    inset 0 1px 0 oklch(1 0 0 / 0.06),
-    0 30px 80px -30px oklch(0.6 0.2 40 / 0.45),
+    inset 0 1px 0 oklch(1 0 0 / 0.08),
+    0 30px 80px -30px oklch(0.6 0.2 40 / 0.5),
     0 0 0 1px oklch(0.78 0.16 75 / 0.08);
   background: #07060a;
   animation: hero-rise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -467,7 +467,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 25%;
+  object-position: center 32%;
   filter: saturate(1.08) contrast(1.04);
   animation: hero-kenburns 22s ease-in-out infinite alternate;
 }
@@ -476,12 +476,17 @@
   to   { transform: scale(1.08) translate3d(-1.5%, -1%, 0); }
 }
 
-/* Lớp tối ở dưới để chữ luôn đọc rõ — không gây rối */
+/* Chỉ mờ dần từ dưới lên, tan vào đúng màu nền trang.
+   Không phủ tối bên trái nữa vì ảnh bìa đã có sẵn chữ KOL AI SYSTEM ở đó. */
 .hero-cover__veil {
   position: absolute; inset: 0;
-  background:
-    linear-gradient(180deg, oklch(0.05 0.02 30 / 0.1) 0%, oklch(0.05 0.02 30 / 0.55) 55%, oklch(0.05 0.02 30 / 0.92) 100%),
-    linear-gradient(90deg, oklch(0.05 0.02 30 / 0.7) 0%, transparent 55%);
+  background: linear-gradient(180deg,
+    transparent 0%,
+    transparent 34%,
+    oklch(0.08 0.015 280 / 0.35) 55%,
+    oklch(0.08 0.015 280 / 0.82) 76%,
+    oklch(0.08 0.015 280 / 0.97) 90%,
+    var(--background) 100%);
   pointer-events: none;
 }
 
