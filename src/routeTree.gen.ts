@@ -13,6 +13,7 @@ import { Route as VinhDanhRouteImport } from './routes/vinh-danh'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as CoGiMoiRouteImport } from './routes/co-gi-moi'
 import { Route as BaiTapRouteImport } from './routes/bai-tap'
 import { Route as BaiGiangRouteImport } from './routes/bai-giang'
 import { Route as IndexRouteImport } from './routes/index'
@@ -37,6 +38,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoGiMoiRoute = CoGiMoiRouteImport.update({
+  id: '/co-gi-moi',
+  path: '/co-gi-moi',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BaiTapRoute = BaiTapRouteImport.update({
   id: '/bai-tap',
   path: '/bai-tap',
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bai-giang': typeof BaiGiangRoute
   '/bai-tap': typeof BaiTapRoute
+  '/co-gi-moi': typeof CoGiMoiRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bai-giang': typeof BaiGiangRoute
   '/bai-tap': typeof BaiTapRoute
+  '/co-gi-moi': typeof CoGiMoiRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/bai-giang': typeof BaiGiangRoute
   '/bai-tap': typeof BaiTapRoute
+  '/co-gi-moi': typeof CoGiMoiRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bai-giang'
     | '/bai-tap'
+    | '/co-gi-moi'
     | '/login'
     | '/privacy'
     | '/terms'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bai-giang'
     | '/bai-tap'
+    | '/co-gi-moi'
     | '/login'
     | '/privacy'
     | '/terms'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bai-giang'
     | '/bai-tap'
+    | '/co-gi-moi'
     | '/login'
     | '/privacy'
     | '/terms'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BaiGiangRoute: typeof BaiGiangRoute
   BaiTapRoute: typeof BaiTapRoute
+  CoGiMoiRoute: typeof CoGiMoiRoute
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/co-gi-moi': {
+      id: '/co-gi-moi'
+      path: '/co-gi-moi'
+      fullPath: '/co-gi-moi'
+      preLoaderRoute: typeof CoGiMoiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/bai-tap': {
       id: '/bai-tap'
       path: '/bai-tap'
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BaiGiangRoute: BaiGiangRoute,
   BaiTapRoute: BaiTapRoute,
+  CoGiMoiRoute: CoGiMoiRoute,
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,

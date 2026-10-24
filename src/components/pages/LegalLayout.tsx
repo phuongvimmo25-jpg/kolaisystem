@@ -34,14 +34,14 @@ export function LegalLayout({
 
         <article className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl p-6 sm:p-10">
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">{title}</h1>
-          <p className="mt-2 text-xs text-muted-foreground">Cập nhật lần cuối: {updatedAt}</p>
+          <p className="mt-2 text-[13px] text-muted-foreground">Cập nhật lần cuối: {updatedAt}</p>
 
-          <div className="mt-8 space-y-7 text-sm sm:text-[15px] leading-relaxed text-foreground/85">
+          <div className="mt-8 space-y-7 text-sm sm:text-[16px] leading-relaxed text-foreground">
             {children}
           </div>
         </article>
 
-        <nav className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+        <nav className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-muted-foreground">
           <Link to="/login" className="hover:text-foreground transition">← Về trang đăng nhập</Link>
           <Link to="/privacy" className="hover:text-foreground transition">Chính sách bảo mật</Link>
           <Link to="/terms" className="hover:text-foreground transition">Điều khoản sử dụng</Link>

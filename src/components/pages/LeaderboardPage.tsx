@@ -8,7 +8,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { AdminMemberDialog, type MemberBrief } from "@/components/AdminMemberDialog";
-import { ALL_LESSONS } from "@/lib/lessons";
+import { gradeBatch } from "@/fn/gradeBatch";
+import { Loader2, Sparkles } from "lucide-react";
+import { ALL_LESSONS, DAYS } from "@/lib/lessons";
 import leaderboardHero from "@/assets/leaderboard-hero.jpg";
 
 interface LeaderRow {
@@ -16,14 +18,40 @@ interface LeaderRow {
   display_name: string;
   avatar_url: string | null;
   total_points: number;
+  grade_sum: number;
   submission_count: number;
   watched_count: number;
+  /** Điểm riêng của từng ngày, ví dụ { "ngay-1": 9.5 } */
+  day_scores: Record<string, number> | null;
+}
+
+/** Điểm của từng ngày — chỉ hiện ngày đã có điểm. */
+export function DayScores({ scores }: { scores: Record<string, number> | null }) {
+  const items = DAYS.map((d) => [d.day, scores?.[d.key]] as const).filter(
+    (x): x is readonly [number, number] => typeof x[1] === "number",
+  );
+  if (items.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      {items.map(([day, score]) => (
+        <span
+          key={day}
+          title={`Ngày ${day}: ${score}/10`}
+          className="inline-flex items-center gap-1 rounded-md border border-gold/25 bg-gold/[0.07] px-1.5 py-px text-[12px] font-bold tabular-nums text-gold/90"
+        >
+          <span className="text-gold/55">N{day}</span>
+          {score}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 /** Dãy khiên vàng — mỗi khiên là một bài tập đã nộp. */
 function Shields({ count, size = "sm" }: { count: number; size?: "sm" | "md" }) {
   if (count === 0) {
-    return <span className="text-[11px] text-muted-foreground">Chưa có khiên</span>;
+    return <span className="text-[12px] text-muted-foreground">Chưa có khiên</span>;
   }
   const MAX = size === "md" ? 5 : 8;
   const shown = Math.min(count, MAX);
@@ -38,7 +66,7 @@ function Shields({ count, size = "sm" }: { count: number; size?: "sm" | "md" }) 
         />
       ))}
       {count > MAX && (
-        <span className="ml-0.5 text-[11px] font-bold text-gold">+{count - MAX}</span>
+        <span className="ml-0.5 text-[12px] font-bold text-gold">+{count - MAX}</span>
       )}
     </div>
   );
@@ -48,8 +76,8 @@ function Shields({ count, size = "sm" }: { count: number; size?: "sm" | "md" }) 
 const TIERS = [
   { max: 10, label: "TOP 10", tone: "border-gold/40 bg-gold/10 text-gold" },
   { max: 20, label: "TOP 20", tone: "border-primary/40 bg-primary/10 text-primary-glow" },
-  { max: 50, label: "TOP 50", tone: "border-sky-500/35 bg-sky-500/10 text-sky-300" },
-  { max: 100, label: "TOP 100", tone: "border-emerald-500/35 bg-emerald-500/10 text-emerald-300" },
+  { max: 50, label: "TOP 50", tone: "border-sky-500/35 bg-sky-500/10 text-sky-700 dark:text-sky-300" },
+  { max: 100, label: "TOP 100", tone: "border-emerald-500/35 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
   { max: 200, label: "TOP 200", tone: "border-border bg-muted/40 text-muted-foreground" },
 ] as const;
 
@@ -59,15 +87,57 @@ export function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
   const { isAdmin } = useIsAdmin();
   const [viewing, setViewing] = useState<MemberBrief | null>(null);
+  const [batchRunning, setBatchRunning] = useState(false);
+  const [batchInfo, setBatchInfo] = useState("");
+
+  /** Chấm dồn các bài đang chờ. Gọi nhiều lượt nhỏ để không quá hạn giờ máy chủ. */
+  const runBatch = async () => {
+    const { data: sess } = await supabase.auth.getSession();
+    const token = sess.session?.access_token;
+    if (!token) return;
+
+    setBatchRunning(true);
+    let ok = 0;
+    let bad = 0;
+    try {
+      for (let i = 0; i < 60; i++) {
+        const r = (await gradeBatch({ data: { accessToken: token } })) as unknown as {
+          graded: number;
+          failed: number;
+          remaining: number;
+        };
+        ok += r.graded;
+        bad += r.failed;
+        setBatchInfo(`Đã chấm ${ok} bài · còn ${r.remaining} bài`);
+        if (r.remaining === 0 || r.graded + r.failed === 0) break;
+      }
+      toast.success(`Chấm xong ${ok} bài`, {
+        description: bad > 0 ? `${bad} bài không mở được tài liệu` : undefined,
+      });
+    } catch (e) {
+      toast.error("Chấm bị gián đoạn", {
+        description: e instanceof Error ? e.message : String(e),
+      });
+    }
+    setBatchRunning(false);
+    setBatchInfo("");
+    load();
+  };
 
   const load = useCallback(async () => {
     const { data } = await supabase
       .from("profiles")
-      .select("id, display_name, avatar_url, total_points, submission_count, watched_count")
-      .order("total_points", { ascending: false })
+      .select(
+        "id, display_name, avatar_url, total_points, grade_sum, submission_count, watched_count, day_scores",
+      )
+      // Thứ hạng tính theo điểm chấm. Bằng điểm thì ai nộp nhiều ngày hơn
+      // đứng trên; vẫn bằng thì ai nộp sớm hơn đứng trên.
+      .order("grade_sum", { ascending: false })
       .order("submission_count", { ascending: false })
+      .order("first_submit_at", { ascending: true, nullsFirst: false })
       .limit(200);
-    setRows((data ?? []) as LeaderRow[]);
+    // Ép kiểu qua unknown: cột day_scores mới thêm, file kiểu Supabase chưa cập nhật
+    setRows((data ?? []) as unknown as LeaderRow[]);
     setLoading(false);
   }, []);
 
@@ -99,23 +169,47 @@ export function LeaderboardPage() {
               <span className="text-foreground">Vinh</span>
               <span className="text-gradient-primary"> danh</span>
             </h1>
-            <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5 text-gold" />1 bài nộp = 1 khiên vàng
+            <p className="mt-1.5 flex items-center gap-1 text-[13px] text-muted-foreground">
+              <ShieldCheck className="h-3.5 w-3.5 text-gold" />
+              Xếp hạng theo điểm chấm bài
             </p>
           </div>
 
           {myRank > 0 && (
             <div className="flex shrink-0 flex-col items-end gap-1.5">
-              <div className="rounded-full border border-primary/35 bg-primary/15 px-2.5 py-1 text-xs font-bold">
+              <div className="rounded-full border border-primary/35 bg-primary/15 px-2.5 py-1 text-[13px] font-bold">
                 Hạng <span className="text-gradient-primary">#{myRank}</span>
               </div>
-              <Button onClick={share} variant="outline" size="sm" className="h-7 px-2 text-xs">
+              <Button onClick={share} variant="outline" size="sm" className="h-7 px-2 text-[13px]">
                 <Share2 className="mr-1 h-3.5 w-3.5" /> Chia sẻ
               </Button>
             </div>
           )}
         </div>
       </div>
+
+      {isAdmin && (
+        <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-gold/25 bg-gold/[0.06] px-3 py-2.5">
+          <Sparkles className="h-4 w-4 shrink-0 text-gold" />
+          <span className="min-w-0 flex-1 text-[14px] text-foreground">
+            {batchInfo || "Chấm dồn toàn bộ bài đang chờ nhận xét"}
+          </span>
+          <Button
+            size="sm"
+            onClick={runBatch}
+            disabled={batchRunning}
+            className="h-8 shrink-0 bg-gradient-gold text-gold-foreground hover:opacity-90"
+          >
+            {batchRunning ? (
+              <>
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Đang chấm...
+              </>
+            ) : (
+              "Chấm tất cả"
+            )}
+          </Button>
+        </div>
+      )}
 
       {/* Bục vinh danh — luôn hiện đủ 3 ô để thấy rõ cấu trúc 1-2-3 */}
       <div className="grid grid-cols-3 items-end gap-2 pt-1 sm:gap-3 md:gap-4">
@@ -141,7 +235,7 @@ export function LeaderboardPage() {
       </div>
 
       {loading && rows.length === 0 && (
-        <Card className="border-border bg-card/60 p-10 text-center text-[15px] text-muted-foreground">
+        <Card className="border-border bg-card/60 p-10 text-center text-[16px] text-muted-foreground">
           Đang tải bảng xếp hạng...
         </Card>
       )}
@@ -149,7 +243,7 @@ export function LeaderboardPage() {
       {!loading && rows.length === 0 && (
         <Card className="border-border bg-card/60 p-10 text-center">
           <div className="mb-3 text-4xl">🛡️</div>
-          <div className="text-[15px] text-muted-foreground">
+          <div className="text-[16px] text-muted-foreground">
             Chưa có ai trên bảng — hãy là người đầu tiên nộp bài!
           </div>
         </Card>
@@ -170,13 +264,13 @@ export function LeaderboardPage() {
               <div className="mb-2 flex items-center gap-2.5">
                 <span
                   className={
-                    "rounded-full border px-2.5 py-0.5 text-[11px] font-black tracking-[0.14em] " +
+                    "rounded-full border px-2.5 py-0.5 text-[12px] font-black tracking-[0.14em] " +
                     tier.tone
                   }
                 >
                   {tier.label}
                 </span>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-[12px] text-muted-foreground">
                   hạng {from}–{tier.max}
                 </span>
                 <div className="h-px flex-1 bg-border/70" />
@@ -198,27 +292,35 @@ export function LeaderboardPage() {
                       </div>
                       <Avatar className="h-10 w-10 ring-2 ring-primary/30">
                         <AvatarImage src={r.avatar_url ?? undefined} className="object-cover" />
-                        <AvatarFallback className="bg-primary/20 text-xs font-bold text-primary">
+                        <AvatarFallback className="bg-primary/20 text-[13px] font-bold text-primary">
                           {r.display_name.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-[15px] font-bold text-white">
+                        <div className="truncate text-[16px] font-bold text-foreground">
                           {r.display_name}
                         </div>
-                        <div className="mt-0.5 flex items-center gap-2">
+                        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                           <div className="flex items-center gap-0.5">
                             <Shields count={r.submission_count} />
                           </div>
-                          <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <span className="inline-flex items-center gap-1 text-[12px] text-muted-foreground">
                             <PlayCircle className="h-2.5 w-2.5" />
                             {r.watched_count}/{ALL_LESSONS.length}
                           </span>
                         </div>
+                        <div className="mt-1">
+                          <DayScores scores={r.day_scores} />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 bg-gradient-to-r from-gold to-amber-300 bg-clip-text text-base font-black text-transparent drop-shadow-[0_0_8px_oklch(0.78_0.16_75/0.4)]">
-                        {r.total_points}
-                        <Flame className="h-3 w-3 text-orange-400" />
+                      <div className="shrink-0 text-right">
+                        <div className="flex items-center justify-end gap-1 bg-gradient-to-r from-gold to-amber-300 bg-clip-text text-base font-black tabular-nums text-transparent drop-shadow-[0_0_8px_oklch(0.78_0.16_75/0.4)]">
+                          {r.grade_sum}
+                          <Flame className="h-3 w-3 text-orange-600 dark:text-orange-400" />
+                        </div>
+                        <div className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Tổng điểm
+                        </div>
                       </div>
                     </Card>
                   );
@@ -253,16 +355,16 @@ function PodiumCard({
         <div className="flex aspect-[3/4] flex-col items-center justify-center rounded-2xl border border-dashed border-border/70 bg-card/25 px-2">
           <div
             className={
-              "flex aspect-square items-center justify-center rounded-full border border-dashed border-border text-muted-foreground/40 " +
+              "flex aspect-square items-center justify-center rounded-full border border-dashed border-border text-muted-foreground " +
               (featured ? "w-[62%]" : "w-[56%]")
             }
           >
             <Crown className="h-5 w-5" />
           </div>
-          <div className="mt-2 rounded-full bg-muted/60 px-2 py-0.5 text-[9px] font-black tracking-[0.14em] text-muted-foreground sm:text-[10px]">
+          <div className="mt-2 rounded-full bg-muted/60 px-2 py-0.5 text-[12px] font-black tracking-[0.14em] text-muted-foreground sm:text-[13px]">
             TOP {rank}
           </div>
-          <div className="mt-1.5 text-[10px] text-muted-foreground/70 sm:text-xs">Còn trống</div>
+          <div className="mt-1.5 text-[12px] text-muted-foreground sm:text-[13px]">Còn trống</div>
         </div>
       </div>
     );
@@ -296,8 +398,8 @@ function PodiumCard({
       tag: "bg-gradient-to-r from-red-500 to-rose-600",
       ring: "ring-red-400",
       accent: "oklch(0.72 0.24 25)",
-      text: "text-red-400",
-      romanCol: "text-red-400",
+      text: "text-red-600 dark:text-red-400",
+      romanCol: "text-red-600 dark:text-red-400",
     },
   }[variant];
 
@@ -406,20 +508,24 @@ function PodiumCard({
           </div>
 
           <div
-            className={`mt-1.5 rounded-full px-2 py-0.5 text-[9px] font-black tracking-[0.14em] text-background shadow-lg sm:mt-2.5 sm:px-2.5 sm:text-[10px] md:px-3 md:text-[11px] ${cfg.tag}`}
+            className={`mt-1.5 rounded-full px-2 py-0.5 text-[12px] font-black tracking-[0.14em] text-background shadow-lg sm:mt-2.5 sm:px-2.5 sm:text-[13px] md:px-3 md:text-[14px] ${cfg.tag}`}
           >
             TOP {rank}
           </div>
 
-          <div className="mt-1 w-full truncate px-0.5 text-center text-[11px] font-black text-white drop-shadow sm:mt-1.5 sm:text-[13px] md:text-[15px]">
+          <div className="mt-1 w-full truncate px-0.5 text-center text-[12px] font-black text-foreground drop-shadow sm:mt-1.5 sm:text-[14px] md:text-[16px]">
             {row.display_name}
           </div>
 
           <div
-            className={`mt-0.5 flex items-center gap-0.5 text-[13px] font-black sm:mt-1 sm:gap-1 sm:text-sm md:text-base ${cfg.text}`}
+            className={`mt-0.5 flex items-center gap-0.5 text-[14px] font-black tabular-nums sm:mt-1 sm:gap-1 sm:text-sm md:text-base ${cfg.text}`}
           >
-            {row.total_points}
-            <Flame className="h-3 w-3 text-orange-400 sm:h-3.5 sm:w-3.5" />
+            {row.grade_sum}
+            <Flame className="h-3 w-3 text-orange-600 dark:text-orange-400 sm:h-3.5 sm:w-3.5" />
+          </div>
+
+          <div className="mt-1 hidden justify-center sm:flex">
+            <DayScores scores={row.day_scores} />
           </div>
 
           <div className="mt-1.5 hidden sm:block">

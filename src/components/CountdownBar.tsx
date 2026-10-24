@@ -114,14 +114,14 @@ function Pill({
   children: React.ReactNode;
 }) {
   const styles = {
-    normal: "border-border/70 bg-card/70 text-foreground/75",
-    urgent: "border-red-500/40 bg-red-500/10 text-red-300",
-    done: "border-emerald-500/30 bg-emerald-500/8 text-emerald-300/90",
+    normal: "border-border/70 bg-card/70 text-foreground",
+    urgent: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300",
+    done: "border-emerald-500/30 bg-emerald-500/8 text-emerald-700 dark:text-emerald-700 dark:text-emerald-300",
   }[tone];
 
   return (
     <div
-      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] leading-none backdrop-blur-md transition-colors ${styles} ${
+      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-[12px] leading-none backdrop-blur-md transition-colors ${styles} ${
         interactive ? "hover:border-primary/50 hover:text-foreground" : ""
       }`}
     >

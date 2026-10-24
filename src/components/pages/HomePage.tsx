@@ -7,7 +7,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { Card } from "@/components/ui/card";
 import { ALL_LESSONS, DAYS, COURSE_INTRO, currentDeadline, dayLabel } from "@/lib/lessons";
 import { PlayCircle } from "lucide-react";
-import homeHero from "@/assets/home-hero.jpg";
+import { CoGiMoi } from "@/components/CoGiMoi";
 
 /** Huy hiệu tính thẳng từ tiến độ — không cần bảng riêng, không bao giờ lệch số liệu. */
 interface BadgeDef {
@@ -45,8 +45,10 @@ export function HomePage() {
     const { data } = await supabase
       .from("profiles")
       .select("id")
-      .order("total_points", { ascending: false })
+      // Cùng tiêu chí với bảng Vinh danh: điểm chấm trước, rồi số bài, rồi nộp sớm
+      .order("grade_sum", { ascending: false })
       .order("submission_count", { ascending: false })
+      .order("first_submit_at", { ascending: true, nullsFirst: false })
       .limit(100);
     const i = (data ?? []).findIndex((r) => r.id === user.id);
     setRank(i >= 0 ? i + 1 : 0);
@@ -58,7 +60,7 @@ export function HomePage() {
 
   const subs = profile?.submission_count ?? 0;
   const watched = profile?.watched_count ?? 0;
-  const points = profile?.total_points ?? 0;
+  const points = profile?.grade_sum ?? 0;
   const total = DAYS.length;
   const totalVideos = ALL_LESSONS.length;
   const percent =
@@ -77,7 +79,7 @@ export function HomePage() {
             Chào, <span className="text-gradient-gold">{profile?.display_name ?? "bạn"}</span>
           </h1>
           {next && (
-            <p className="mt-1 truncate text-[13px] text-muted-foreground">
+            <p className="mt-1 truncate text-[14px] text-muted-foreground">
               Sắp tới hạn: <b className="text-gold">{dayLabel(next.day.day)}</b> —{" "}
               {next.day.subtitle}
             </p>
@@ -85,14 +87,14 @@ export function HomePage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-2.5 py-1 text-xs font-bold text-gold">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-2.5 py-1 text-[13px] font-bold text-gold">
             <ShieldCheck className="h-3.5 w-3.5" /> {subs}/{total}
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary-glow">
-            <Flame className="h-3.5 w-3.5" /> {points}
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[13px] font-bold text-primary-glow">
+            <Flame className="h-3.5 w-3.5" /> {points} điểm
           </span>
           {rank > 0 && (
-            <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary-glow">
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[13px] font-bold text-primary-glow">
               Hạng #{rank}
             </span>
           )}
@@ -103,7 +105,7 @@ export function HomePage() {
                 style={{ width: percent + "%" }}
               />
             </div>
-            <span className="shrink-0 text-[11px] font-bold text-gold">{percent}%</span>
+            <span className="shrink-0 text-[12px] font-bold text-gold">{percent}%</span>
           </div>
         </div>
       </div>
@@ -112,7 +114,7 @@ export function HomePage() {
       {subs > 0 && watched < totalVideos && (
         <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-gold/30 bg-gold/[0.07] px-4 py-3">
           <PlayCircle className="h-4 w-4 shrink-0 text-gold" />
-          <p className="min-w-0 flex-1 text-[13px] leading-relaxed text-foreground/85">
+          <p className="min-w-0 flex-1 text-[14px] leading-relaxed text-foreground">
             Bạn đã nộp bài nhưng mới xem{" "}
             <b className="text-gold">
               {watched}/{totalVideos}
@@ -121,7 +123,7 @@ export function HomePage() {
           </p>
           <Link
             to="/bai-giang"
-            className="shrink-0 rounded-lg border border-gold/40 bg-gold/10 px-3 py-1.5 text-xs font-bold text-gold transition hover:bg-gold/20"
+            className="shrink-0 rounded-lg border border-gold/40 bg-gold/10 px-3 py-1.5 text-[13px] font-bold text-gold transition hover:bg-gold/20"
           >
             Xem bài giảng
           </Link>
@@ -135,12 +137,12 @@ export function HomePage() {
           <h2 className="mt-2 text-[22px] font-black md:text-[30px]">
             <span className="text-gradient-gold">{COURSE_INTRO.title}</span>
           </h2>
-          <p className="mx-auto mt-2.5 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+          <p className="mx-auto mt-2.5 max-w-xl text-[16px] leading-relaxed text-muted-foreground">
             {COURSE_INTRO.description}
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-gold/25 bg-black shadow-[0_24px_70px_-30px_oklch(0.78_0.16_75/0.55)]">
+        <div className="overflow-hidden video-frame rounded-2xl border border-gold/25 shadow-[0_24px_70px_-30px_oklch(0.78_0.16_75/0.55)]">
           <div className="relative aspect-video w-full">
             <iframe
               className="absolute inset-0 h-full w-full"
@@ -162,11 +164,19 @@ export function HomePage() {
             {started ? "Tiếp tục hành trình" : "Bắt Đầu Hành Trình"}
             <ArrowRight className="h-[18px] w-[18px] transition-transform group-hover:translate-x-1" />
           </Link>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[13px] text-muted-foreground">
             {totalVideos} bài giảng · {total} bài tập · leo bảng Vinh danh
           </p>
+          <Link
+            to="/bai-tap"
+            className="text-[13px] font-bold text-gold underline-offset-4 transition hover:underline"
+          >
+            Xem luật tính khiên và điểm
+          </Link>
         </div>
       </section>
+
+      <CoGiMoi />
 
       {/* ══ 3. HUY HIỆU ══ */}
       <section>
@@ -180,7 +190,7 @@ export function HomePage() {
                 title={b.name}
                 className={
                   "flex flex-col items-center px-1 py-2.5 text-center transition " +
-                  (got ? "border-gold/35 bg-gold/[0.07]" : "border-border/60 bg-card/25 opacity-50")
+                  (got ? "border-gold/35 bg-gold/[0.07]" : "border-border/60 bg-card/40 opacity-80")
                 }
               >
                 <div className="relative text-xl sm:text-2xl">
@@ -191,7 +201,7 @@ export function HomePage() {
                 </div>
                 <div
                   className={
-                    "mt-1 text-[10px] font-bold leading-tight sm:text-[12px] " +
+                    "mt-1 text-[12px] font-bold leading-tight sm:text-[13px] " +
                     (got ? "text-gold" : "text-muted-foreground")
                   }
                 >
@@ -202,17 +212,6 @@ export function HomePage() {
           })}
         </div>
       </section>
-
-      {/* ══ 4. BÌA CHÂN TRANG ══ */}
-      <footer className="hero-cover hero-cover--footer">
-        <img src={homeHero} alt="KOL AI SYSTEM" className="hero-cover__img" loading="lazy" />
-        <div className="hero-cover__veil" aria-hidden />
-        <div className="hero-cover__content">
-          <p className="text-[13px] font-semibold tracking-wide text-foreground/80 md:text-sm">
-            Hệ thống huấn luyện cấp tốc của những chiến thần
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

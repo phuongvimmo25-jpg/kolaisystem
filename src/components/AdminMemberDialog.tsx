@@ -157,10 +157,10 @@ export function AdminMemberDialog({
                     return (
                       <div
                         key={day.key}
-                        className="flex items-center gap-2 rounded-xl border border-dashed border-border/70 bg-background/30 p-3 text-[13px] text-muted-foreground"
+                        className="flex items-center gap-2 rounded-xl border border-dashed border-border/70 bg-background/30 p-3 text-[14px] text-muted-foreground"
                       >
                         <CircleDashed className="h-4 w-4 shrink-0" />
-                        <b className="text-foreground/70">{dayLabel(day.day)}</b> — chưa nộp bài
+                        <b className="text-foreground">{dayLabel(day.day)}</b> — chưa nộp bài
                       </div>
                     );
                   }
@@ -168,17 +168,17 @@ export function AdminMemberDialog({
                   return (
                     <div key={day.key} className="rounded-xl border border-border bg-card/50 p-3.5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-md bg-gold/20 px-2 py-0.5 text-xs font-black text-gold">
+                        <span className="rounded-md bg-gold/20 px-2 py-0.5 text-[13px] font-black text-gold">
                           {dayLabel(day.day)}
                         </span>
-                        <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">
+                        <span className="min-w-0 flex-1 truncate text-[14px] text-muted-foreground">
                           {d?.assignment}
                         </span>
                         <a
                           href={row.doc_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-gold/35 bg-gold/10 px-2.5 py-1 text-xs font-bold text-gold transition hover:bg-gold/20"
+                          className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-gold/35 bg-gold/10 px-2.5 py-1 text-[13px] font-bold text-gold transition hover:bg-gold/20"
                         >
                           Mở bài <ExternalLink className="h-3.5 w-3.5" />
                         </a>
@@ -186,26 +186,26 @@ export function AdminMemberDialog({
 
                       {/* Chatbot đã chấm gì */}
                       <div className="mt-2.5 rounded-lg border border-border/60 bg-background/40 p-2.5">
-                        <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                        <div className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground">
                           Nhận xét tự động
                         </div>
                         {row.grade_error ? (
-                          <p className="mt-1 text-[13px] leading-relaxed text-red-300">
+                          <p className="mt-1 text-[14px] leading-relaxed text-red-700 dark:text-red-300">
                             Không chấm được: {row.grade_error}
                           </p>
                         ) : row.ai_feedback ? (
-                          <p className="mt-1 text-[13px] leading-relaxed text-foreground/85">
+                          <p className="mt-1 text-[14px] leading-relaxed text-foreground">
                             <b className="text-gold">{row.ai_score}/10</b> — {row.ai_feedback}
                           </p>
                         ) : (
-                          <p className="mt-1 text-[13px] text-muted-foreground">Chưa chấm.</p>
+                          <p className="mt-1 text-[14px] text-muted-foreground">Chưa chấm.</p>
                         )}
                       </div>
 
                       {/* Admin sửa tay */}
                       <div className="mt-2.5 grid gap-2 sm:grid-cols-[90px_1fr]">
                         <div>
-                          <Label className="text-[11px] text-muted-foreground">Điểm</Label>
+                          <Label className="text-[12px] text-muted-foreground">Điểm</Label>
                           <Input
                             type="number"
                             min={0}
@@ -219,7 +219,7 @@ export function AdminMemberDialog({
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-muted-foreground">
+                          <Label className="text-[12px] text-muted-foreground">
                             Đánh giá của bạn
                           </Label>
                           <Textarea
@@ -227,7 +227,7 @@ export function AdminMemberDialog({
                             value={notes[day.key] ?? ""}
                             onChange={(e) => setNotes((p) => ({ ...p, [day.key]: e.target.value }))}
                             placeholder="Phong thấy bạn..."
-                            className="mt-1 resize-none bg-background/60 text-[13px]"
+                            className="mt-1 resize-none bg-background/60 text-[14px]"
                           />
                         </div>
                       </div>

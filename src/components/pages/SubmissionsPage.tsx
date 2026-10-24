@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/PageHeader";
+import { LuatChoi } from "@/components/LuatChoi";
 import {
   ReviewComment,
   ReviewPending,
@@ -34,6 +35,7 @@ import { gradeSubmission } from "@/fn/gradeSubmission";
 interface Submission {
   lesson_key: string;
   doc_url: string;
+  created_at: string;
   updated_at: string;
   ai_score: number | null;
   ai_feedback: string | null;
@@ -41,6 +43,11 @@ interface Submission {
   grade_error: string | null;
   admin_score: number | null;
   admin_feedback: string | null;
+}
+
+/** Ngày theo lịch Việt Nam, dạng "2026-08-31" — dùng để đếm khiên. */
+function ngayVN(t: string | number | Date): string {
+  return new Date(t).toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" });
 }
 
 function isValidUrl(url: string) {
@@ -81,7 +88,7 @@ export function SubmissionsPage() {
     const { data } = await supabase
       .from("submissions")
       .select(
-        "lesson_key, doc_url, updated_at, ai_score, ai_feedback, graded_at, grade_error, admin_score, admin_feedback",
+        "lesson_key, doc_url, created_at, updated_at, ai_score, ai_feedback, graded_at, grade_error, admin_score, admin_feedback",
       )
       .eq("user_id", user.id);
 
@@ -173,9 +180,24 @@ export function SubmissionsPage() {
       return;
     }
 
-    toast.success(
-      subs[dayKey] ? "Đã cập nhật link" : "Nộp bài thành công! +" + POINTS_PER_SUBMISSION + " điểm",
-    );
+    if (subs[dayKey]) {
+      toast.success("Đã cập nhật link");
+    } else {
+      // Khiên đếm theo NGÀY nộp, không phải số bài. Nộp bài thứ hai trong cùng
+      // một ngày thì khiên không tăng — phải nói rõ ngay lúc này.
+      const homNay = ngayVN(Date.now());
+      const daNopHomNay = Object.values(subs).some((r) => ngayVN(r.created_at) === homNay);
+
+      if (daNopHomNay) {
+        toast.success("Nộp bài thành công! +" + POINTS_PER_SUBMISSION + " điểm", {
+          description:
+            "Hôm nay bạn đã nộp một bài rồi nên khiên vàng không cộng thêm — mỗi ngày chỉ tính một khiên. Điểm chấm của bài này vẫn được cộng đủ vào tổng điểm và thứ hạng.",
+          duration: 14000,
+        });
+      } else {
+        toast.success("Nộp bài thành công! +" + POINTS_PER_SUBMISSION + " điểm và 1 khiên vàng");
+      }
+    }
     load();
 
     // Chấm ngay tại chỗ. Nhận xét vẫn chỉ hiện sau 5 phút,
@@ -203,9 +225,24 @@ export function SubmissionsPage() {
       });
   };
 
-  /** Chấm lại sau khi học viên đã sửa quyền tài liệu. */
+  /**
+   * Chấm lại sau khi học viên đã sửa quyền tài liệu.
+   * Chỉ áp dụng cho bài BỊ LỖI QUYỀN. Bài đã có điểm thì giữ nguyên vĩnh viễn —
+   * không ai chấm lại được, kể cả học viên tự bấm.
+   */
   const retryGrading = async (dayKey: string) => {
     if (!user) return;
+
+    // Còn cờ lỗi nghĩa là Phong chưa đọc được bài thật — điểm 7 chỉ là mức tạm ghi nhận,
+    // nên vẫn cho chấm lại. Chỉ khoá khi đã chấm thành công (không còn lỗi).
+    const current = subs[dayKey];
+    if (!current || !current.grade_error) {
+      toast.info("Bài này đã được chấm", {
+        description: "Điểm và nhận xét được giữ nguyên, không chấm lại.",
+      });
+      return;
+    }
+
     setGrading((prev) => new Set(prev).add(dayKey));
     // Xoá dấu đã chấm để hàm chấm chạy lại từ đầu
     await supabase
@@ -300,7 +337,7 @@ export function SubmissionsPage() {
           <div className="flex flex-wrap items-center gap-2">
             <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1.5">
               <Check className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-bold text-foreground/80">
+              <span className="text-sm font-bold text-foreground">
                 {submitted}
                 <span className="font-medium text-muted-foreground">/{DAYS.length} đã nộp</span>
               </span>
@@ -316,6 +353,8 @@ export function SubmissionsPage() {
         }
       />
 
+      <LuatChoi />
+
       <div className="space-y-3">
         {DAYS.map((day) => {
           const existing = subs[day.key];
@@ -327,6 +366,17 @@ export function SubmissionsPage() {
           const watchedInDay = day.lessons.filter((l) => watched.has(l.key)).length;
           const missingVideo = watchedInDay < day.lessons.length;
 
+          // Mỗi ngày chỉ một khiên. Khiên thuộc về bài nộp SỚM NHẤT trong ngày hôm đó,
+          // các bài nộp sau trong cùng ngày vẫn tính điểm nhưng không thêm khiên.
+          const khongTinhKhien =
+            !!existing &&
+            Object.values(subs).some(
+              (r) =>
+                r.lesson_key !== day.key &&
+                ngayVN(r.created_at) === ngayVN(existing.created_at) &&
+                new Date(r.created_at) < new Date(existing.created_at),
+            );
+
           return (
             <Card
               key={day.key}
@@ -334,7 +384,7 @@ export function SubmissionsPage() {
               className={
                 "scroll-mt-20 p-4 transition-colors " +
                 (!open
-                  ? "border-border/50 bg-card/25 opacity-70"
+                  ? "border-border/60 bg-card/40"
                   : existing
                     ? "border-gold/25 bg-gold/[0.05]"
                     : "border-border/70 bg-card/50")
@@ -344,7 +394,7 @@ export function SubmissionsPage() {
               <div className="flex items-center gap-2">
                 <span
                   className={
-                    "shrink-0 whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-black " +
+                    "shrink-0 whitespace-nowrap rounded-md px-2 py-0.5 text-[13px] font-black " +
                     (existing ? "bg-gold/20 text-gold" : "bg-primary/15 text-primary")
                   }
                 >
@@ -364,14 +414,14 @@ export function SubmissionsPage() {
                     <ExternalLink className="h-4 w-4" />
                   </a>
                 ) : (
-                  <CircleDashed className="h-4 w-4 shrink-0 text-muted-foreground/50" />
+                  <CircleDashed className="h-4 w-4 shrink-0 text-muted-foreground" />
                 )}
               </div>
 
               {/* Yêu cầu của bài */}
               <ul className="mt-2.5 space-y-1">
                 {day.deliverables.map((d, i) => (
-                  <li key={d} className="flex gap-2 text-[13px] leading-relaxed text-foreground/80">
+                  <li key={d} className="flex gap-2 text-[14px] leading-relaxed text-foreground">
                     <span className="mt-px shrink-0 font-bold text-muted-foreground">{i + 1}.</span>
                     <span>{d}</span>
                   </li>
@@ -380,7 +430,7 @@ export function SubmissionsPage() {
 
               {/* Ô nộp — hoặc khoá nếu chưa tới ngày */}
               {lock.locked ? (
-                <div className="mt-3 flex items-center gap-2 rounded-lg border border-dashed border-border/70 bg-background/30 px-3 py-2 text-[13px] text-muted-foreground">
+                <div className="mt-3 flex items-center gap-2 rounded-lg border border-dashed border-border/70 bg-background/30 px-3 py-2 text-[14px] text-muted-foreground">
                   <Lock className="h-3.5 w-3.5 shrink-0" />
                   {lock.kind === "date"
                     ? `Mở vào ngày ${lock.openDate}`
@@ -425,11 +475,22 @@ export function SubmissionsPage() {
                 </div>
               )}
 
+              {/* Nộp bài thứ hai trong cùng một ngày — nói rõ vì sao khiên không tăng */}
+              {khongTinhKhien && (
+                <div className="mt-3 flex gap-2.5 rounded-xl border border-border/60 bg-background/40 px-3 py-2.5">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                  <p className="min-w-0 flex-1 text-[14px] leading-relaxed text-muted-foreground">
+                    Bài này nộp cùng ngày với một bài khác nên <b>không cộng thêm khiên</b> — mỗi ngày
+                    chỉ tính một khiên. Điểm chấm vẫn được cộng đủ vào tổng điểm và thứ hạng của bạn.
+                  </p>
+                </div>
+              )}
+
               {/* Đã nộp nhưng chưa xem hết video — nhắc nhẹ, không xoá bài */}
               {existing && missingVideo && (
                 <div className="mt-3 flex flex-wrap items-center gap-2.5 rounded-xl border border-gold/30 bg-gold/[0.07] px-3 py-2.5">
                   <PlayCircle className="h-4 w-4 shrink-0 text-gold" />
-                  <p className="min-w-0 flex-1 text-[13px] leading-relaxed text-foreground/85">
+                  <p className="min-w-0 flex-1 text-[14px] leading-relaxed text-foreground">
                     Bạn mới xem{" "}
                     <b className="text-gold">
                       {watchedInDay}/{day.lessons.length}
@@ -478,7 +539,7 @@ export function SubmissionsPage() {
 
           <div className="space-y-3">
             <div>
-              <Label htmlFor="admin-score" className="text-[13px] font-medium">
+              <Label htmlFor="admin-score" className="text-[14px] font-medium">
                 Điểm{" "}
                 <span className="text-muted-foreground">(0–10, bỏ trống nếu chỉ nhận xét)</span>
               </Label>
@@ -494,7 +555,7 @@ export function SubmissionsPage() {
               />
             </div>
             <div>
-              <Label htmlFor="admin-note" className="text-[13px] font-medium">
+              <Label htmlFor="admin-note" className="text-[14px] font-medium">
                 Nhận xét
               </Label>
               <Textarea
@@ -523,8 +584,8 @@ export function SubmissionsPage() {
         </DialogContent>
       </Dialog>
 
-      <p className="mt-5 text-center text-xs leading-relaxed text-muted-foreground">
-        Nhớ mở quyền <strong className="text-foreground/70">“Bất kỳ ai có đường liên kết”</strong>{" "}
+      <p className="mt-5 text-center text-[13px] leading-relaxed text-muted-foreground">
+        Nhớ mở quyền <strong className="text-foreground">“Bất kỳ ai có đường liên kết”</strong>{" "}
         trong Google Docs.
       </p>
     </div>

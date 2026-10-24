@@ -5,6 +5,9 @@
  */
 
 /** Model Gemini dùng để chấm. Đổi sang "gemini-3.7-flash" nếu muốn chấm kỹ hơn. */
+/** Điểm sàn — anh em đã nộp bài là không bao giờ dưới mức này. */
+export const MIN_SCORE = 7;
+
 export const GRADING_MODEL = "gemini-3.5-flash-lite";
 
 /** Chờ bao lâu sau khi nộp mới hiện nhận xét (mili giây). */
@@ -47,13 +50,20 @@ GIỌNG:
 
 ĐỘ DÀI: ĐÚNG 2 CÂU ngắn.
 
-CHẤM ĐIỂM (thang 10) — LINH HOẠT theo chất lượng thật, không bó khung:
-- Trình bày rõ ràng, đủ mục yêu cầu, hiểu bài và viết bằng lời của mình
-- Bài trống hoặc lạc đề: 0-2 | Thiếu nhiều: 3-5 | Đủ nhưng sơ lược: 6-7 | Tốt: 8-9 | Không còn gì góp ý: 10
-- Cho điểm lẻ (7.5, 8.5) nếu bài nằm giữa hai mức
+CHẤM ĐIỂM — THANG TỪ 7 ĐẾN 10, KHÔNG BAO GIỜ THẤP HƠN 7:
+Anh em đã bỏ công làm và nộp bài là đáng ghi nhận, nên điểm sàn là 7.
+- 7 — 7.5: còn thiếu khá nhiều so với đề bài, cần bổ sung
+- 8 — 8.5: làm đủ ý nhưng còn sơ lược
+- 9 — 9.5: làm tốt, trình bày rõ, có minh chứng
+- 10: đủ trọn vẹn, không còn gì để góp ý
+- Cho điểm lẻ (7.5, 8.5, 9.5) nếu bài nằm giữa hai mức
+- TUYỆT ĐỐI không cho điểm dưới 7 trong bất kỳ trường hợp nào
+
+Bài còn thiếu thì vẫn cho 7 và nói rõ ở câu thứ hai là cần bổ sung gì —
+điểm thấp nhất vẫn là 7, phần góp ý mới là chỗ chỉ ra thiếu sót.
 
 Nếu tài liệu trống, không đọc được, hoặc không liên quan tới đề bài:
-cho điểm 0 và nói rõ trong nhận xét là Phong chưa mở được bài.
+cho điểm 7 và nói rõ trong nhận xét là Phong chưa mở được bài / bài chưa đúng đề.
 
 Trả về ĐÚNG JSON: {"diem": <số>, "nhan_xet": "<đúng 2 câu>"}`;
 
@@ -77,6 +87,29 @@ export function extractGoogleDocId(url: string): string | null {
   const m =
     url.match(/\/document\/d\/([a-zA-Z0-9_-]{10,})/) ?? url.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
   return m?.[1] ?? null;
+}
+
+/**
+ * Đường tải bản PDF của một tài liệu Google.
+ * Nhận cả Docs, Trang tính và Trang trình bày — học viên hay nộp nhầm loại,
+ * bài vẫn đọc được nên không có lý do gì từ chối.
+ */
+export function googleExportPdfUrl(url: string): string | null {
+  const docs = url.match(/\/document\/d\/([a-zA-Z0-9_-]{10,})/);
+  if (docs) return `https://docs.google.com/document/d/${docs[1]}/export?format=pdf`;
+
+  const sheets = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]{10,})/);
+  if (sheets)
+    return `https://docs.google.com/spreadsheets/d/${sheets[1]}/export?format=pdf&portrait=false`;
+
+  const slides = url.match(/\/presentation\/d\/([a-zA-Z0-9_-]{10,})/);
+  if (slides) return `https://docs.google.com/presentation/d/${slides[1]}/export/pdf`;
+
+  // Dạng chỉ có mã tài liệu, ví dụ link chia sẻ cũ từ Drive
+  const id = url.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
+  if (id) return `https://docs.google.com/document/d/${id[1]}/export?format=pdf`;
+
+  return null;
 }
 
 export interface GradeResult {

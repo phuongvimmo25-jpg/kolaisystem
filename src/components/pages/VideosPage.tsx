@@ -18,6 +18,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/PageHeader";
+import { SoDoBaiHoc } from "@/components/SoDoBaiHoc";
 import { toast } from "sonner";
 import {
   DAYS,
@@ -31,6 +32,7 @@ import {
   type Day,
   type Lesson,
   type LockReason,
+  loiChucNgauNhien,
 } from "@/lib/lessons";
 
 export function VideosPage() {
@@ -73,9 +75,26 @@ export function VideosPage() {
   };
 
   /** Hoàn thành bài hiện tại rồi sang bài kế tiếp. */
+  /** Nhảy tới bài đầu tiên của ngày kế tiếp. */
+  const sangNgayKe = (day: Day) => {
+    const sau = DAYS.find((d) => d.day === day.day + 1);
+    if (!sau) return;
+    setSelected(sau.lessons[0].key);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const completeAndNext = async (lesson: Lesson) => {
     const ok = await markWatched(lesson);
     if (!ok) return;
+
+    const day = dayOfLesson(lesson.key);
+    if (day) toast.success(loiChucNgauNhien(day.key), { duration: 6000 });
+
+    // Bài cuối của ngày thì DỪNG LẠI tại chỗ để hiện dấu hoàn tất,
+    // không nhảy sang ngày sau. Khối bài tập ngay dưới đã có nút nộp.
+    const laBaiCuoiNgay = day ? day.lessons[day.lessons.length - 1].key === lesson.key : false;
+    if (laBaiCuoiNgay) return;
+
     const i = ALL_LESSONS.findIndex((l) => l.key === lesson.key);
     const nextLesson = ALL_LESSONS[i + 1];
     if (nextLesson) {
@@ -99,7 +118,7 @@ export function VideosPage() {
           <div className="px-2 pb-2 pt-1">
             <div className="flex items-center justify-between">
               <span className="eyebrow">Nội dung</span>
-              <span className="text-[11px] font-bold text-primary">{percent}%</span>
+              <span className="text-[12px] font-bold text-primary">{percent}%</span>
             </div>
             <Progress value={percent} className="mt-1.5 h-1" />
           </div>
@@ -110,7 +129,7 @@ export function VideosPage() {
               const open = !dayLockState(day.day, submitted).locked;
               return (
                 <div key={day.key} className="contents lg:block">
-                  <div className="hidden items-center gap-1.5 px-2 pb-1.5 pt-3.5 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground/80 lg:flex">
+                  <div className="hidden items-center gap-1.5 px-2 pb-1.5 pt-3.5 text-[12px] font-bold uppercase tracking-[0.12em] text-muted-foreground lg:flex">
                     {dayLabel(day.day)}
                     {!open && <Lock className="h-3 w-3" />}
                     {submitted.has(day.key) && <ShieldCheck className="h-3 w-3 text-gold" />}
@@ -125,9 +144,9 @@ export function VideosPage() {
                       }}
                       icon={
                         !open ? (
-                          <Lock className="h-3.5 w-3.5 opacity-50" />
+                          <Lock className="h-3.5 w-3.5 text-muted-foreground" />
                         ) : watched.has(lesson.key) ? (
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400" />
                         ) : (
                           <Circle className="h-3.5 w-3.5 opacity-40" />
                         )
@@ -155,6 +174,16 @@ export function VideosPage() {
             isSubmitted={submitted.has(current.key)}
             busy={busy === current.key}
             onCompleteNext={() => completeAndNext(current)}
+            watchedKeys={watched}
+            ngaySau={DAYS.find((d) => d.day === (dayOfLesson(current.key)?.day ?? 0) + 1)}
+            ngaySauBiKhoa={(() => {
+              const sau = DAYS.find((d) => d.day === (dayOfLesson(current.key)?.day ?? 0) + 1);
+              return sau ? dayLockState(sau.day, submitted).locked : true;
+            })()}
+            onSangNgayKe={() => {
+              const d = dayOfLesson(current.key);
+              if (d) sangNgayKe(d);
+            }}
           />
         )}
       </div>
@@ -194,8 +223,8 @@ function RailItem({
         {sub && (
           <span
             className={
-              "mt-1 hidden truncate text-[12px] leading-tight lg:block " +
-              (active ? "opacity-80" : "opacity-60")
+              "mt-1 hidden truncate text-[13px] leading-tight lg:block " +
+              (active ? "" : "text-muted-foreground")
             }
           >
             {sub}
@@ -216,6 +245,10 @@ function LessonView({
   isSubmitted,
   busy,
   onCompleteNext,
+  watchedKeys,
+  ngaySau,
+  ngaySauBiKhoa,
+  onSangNgayKe,
 }: {
   lesson: Lesson;
   day?: Day;
@@ -225,15 +258,27 @@ function LessonView({
   isSubmitted: boolean;
   busy: boolean;
   onCompleteNext: () => void;
+  watchedKeys: Set<string>;
+  ngaySau?: Day;
+  ngaySauBiKhoa: boolean;
+  onSangNgayKe: () => void;
 }) {
   const isOpen = !lock.locked;
   const hasVideo = lesson.youtubeId.trim() !== "" && isOpen;
   const deadline = day ? getDayDeadline(day.day) : new Date();
 
+  // Bài tập chỉ hiện ở video CUỐI CÙNG của ngày. Nếu hiện ở mọi video,
+  // học viên dễ tưởng xem xong một video là nộp bài được rồi.
+  const soVideoDay = day ? day.lessons.length : 0;
+  const xongHetVideo = day ? day.lessons.every((l) => watchedKeys.has(l.key)) : false;
+  const viTri = day ? day.lessons.findIndex((l) => l.key === lesson.key) : -1;
+  const laBaiCuoiNgay = day ? viTri === day.lessons.length - 1 : false;
+  const conLai = day ? day.lessons.length - 1 - viTri : 0;
+
   return (
     <div className="mx-auto max-w-[980px] space-y-5">
       {/* VIDEO LỚN — trung tâm */}
-      <div className="overflow-hidden rounded-2xl border border-border bg-black shadow-[0_20px_60px_-25px_rgba(0,0,0,0.9)]">
+      <div className="overflow-hidden video-frame rounded-2xl border border-border shadow-[0_20px_60px_-25px_rgba(0,0,0,0.9)]">
         <div className="relative aspect-video w-full">
           {hasVideo ? (
             <iframe
@@ -259,7 +304,7 @@ function LessonView({
                       ? "Nộp bài " + dayLabel(lock.needDay) + " trước đã"
                       : "Xem hết video của ngày trước đã"}
               </span>
-              <span className="text-xs opacity-70">
+              <span className="text-[13px] text-muted-foreground">
                 {isOpen
                   ? "Bài giảng này đang được quay"
                   : lock.kind === "date"
@@ -273,7 +318,7 @@ function LessonView({
 
       {/* Thông tin bài */}
       <div>
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
           <span className="rounded-md bg-primary/15 px-2 py-0.5 font-bold text-primary">
             {day ? dayLabel(day.day) : ""} · Bài {lesson.code}
           </span>
@@ -283,7 +328,7 @@ function LessonView({
             </span>
           )}
           {isWatched && (
-            <span className="inline-flex items-center gap-1 font-semibold text-emerald-400">
+            <span className="inline-flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400">
               <CheckCircle2 className="h-3 w-3" /> Đã xem
             </span>
           )}
@@ -295,14 +340,64 @@ function LessonView({
         </div>
 
         <h1 className="mt-2.5 text-[20px] font-black md:text-[26px]">{lesson.title}</h1>
-        <p className="mt-2.5 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
+        <p className="mt-2.5 max-w-3xl text-[16px] leading-relaxed text-muted-foreground">
           {lesson.description}
         </p>
       </div>
 
       {/* Hoàn thành bài rồi sang bài kế — không phải tự mò lên mục lục */}
       <div className="flex flex-wrap items-center gap-2">
-        {nextLesson ? (
+        {laBaiCuoiNgay ? (
+          /* Bài cuối của ngày: đánh dấu hoàn tất tại chỗ, rồi mới cho sang ngày sau.
+             Không điều hướng sang nộp bài vì khối bài tập ngay dưới đã có nút. */
+          xongHetVideo ? (
+            <div className="w-full space-y-3">
+              <div className="flex items-center gap-2.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-3">
+                <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-700 dark:text-emerald-400" />
+                <p className="min-w-0 flex-1 text-[14px] font-bold text-emerald-700 dark:text-emerald-300">
+                  Đã hoàn tất {day ? dayLabel(day.day).toLowerCase() : "ngày này"} · xem đủ{" "}
+                  {soVideoDay}/{soVideoDay} video
+                </p>
+              </div>
+
+              {ngaySau ? (
+                <Button
+                  size="lg"
+                  disabled={ngaySauBiKhoa}
+                  onClick={onSangNgayKe}
+                  title={ngaySauBiKhoa ? "Nộp bài của ngày này trước đã" : undefined}
+                  className="w-full bg-gradient-primary hover:opacity-90 sm:w-auto"
+                >
+                  {ngaySauBiKhoa ? (
+                    <>
+                      <Lock className="mr-2 h-4 w-4" />
+                      Nộp bài bên dưới để mở {dayLabel(ngaySau.day)}
+                    </>
+                  ) : (
+                    <>
+                      Sang {dayLabel(ngaySau.day)}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <p className="text-[14px] text-muted-foreground">
+                  Bạn đã học hết toàn bộ bài giảng. Nộp nốt bài bên dưới là trọn vẹn.
+                </p>
+              )}
+            </div>
+          ) : (
+            <Button
+              size="lg"
+              disabled={!hasVideo || busy}
+              onClick={onCompleteNext}
+              className="w-full bg-gradient-gold text-gold-foreground hover:opacity-90 sm:w-auto"
+            >
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              Hoàn thành {day ? dayLabel(day.day).toLowerCase() : "bài này"}
+            </Button>
+          )
+        ) : nextLesson ? (
           <Button
             size="lg"
             disabled={!hasVideo || busy}
@@ -326,17 +421,34 @@ function LessonView({
         )}
       </div>
 
-      {/* ══ BÀI TẬP — khối nổi bật, đặt cuối cùng ══ */}
+      {/* Chưa tới video cuối — chỉ nhắc, chưa cho thấy đề bài */}
+      {!laBaiCuoiNgay && conLai > 0 && (
+        <div className="flex items-start gap-2.5 rounded-xl border border-border/60 bg-background/40 p-3">
+          <ClipboardList className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+          <p className="text-[14px] leading-relaxed text-muted-foreground">
+            Còn <b className="text-foreground">{conLai} video</b> nữa của{" "}
+            {day ? dayLabel(day.day).toLowerCase() : "ngày này"}. Học hết rồi Phong mới đưa bài tập —
+            mỗi ngày chỉ nộp <b className="text-foreground">một bài duy nhất</b>, không phải nộp
+            sau từng video.
+          </p>
+        </div>
+      )}
+
+      {/* Sơ đồ tóm tắt — nhìn là biết phải làm gì trước khi bắt tay vào bài */}
+      {laBaiCuoiNgay && day && <SoDoBaiHoc day={day} />}
+
+      {/* ══ BÀI TẬP — chỉ hiện ở video cuối của ngày ══ */}
+      {laBaiCuoiNgay && (
       <section className="assignment-box">
         <div className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-gold text-gold-foreground">
             <ClipboardList className="h-4 w-4" />
           </span>
-          <h2 className="text-[15px] font-black uppercase tracking-[0.1em] text-gold">
+          <h2 className="text-[16px] font-black uppercase tracking-[0.1em] text-gold">
             Bài tập cần nộp
           </h2>
           {isSubmitted && (
-            <span className="ml-auto inline-flex items-center gap-1 rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-bold text-emerald-400">
+            <span className="ml-auto inline-flex items-center gap-1 rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2 py-0.5 text-[12px] font-bold text-emerald-700 dark:text-emerald-400">
               <CheckCircle2 className="h-3 w-3" /> Đã nộp
             </span>
           )}
@@ -344,7 +456,7 @@ function LessonView({
 
         {/* Mục tiêu */}
         <div className="mt-3">
-          <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+          <div className="text-[12px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
             Mục tiêu
           </div>
           <p className="mt-1 text-[16px] font-semibold leading-relaxed text-foreground">
@@ -355,12 +467,12 @@ function LessonView({
         {/* Bản nộp phải có gì */}
         {day && day.deliverables.length > 0 && (
           <div className="mt-4">
-            <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+            <div className="text-[12px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
               Bản nộp phải có
             </div>
             <ul className="mt-2 space-y-1.5">
               {day.deliverables.map((d) => (
-                <li key={d} className="flex gap-2 text-[15px] leading-relaxed text-foreground/90">
+                <li key={d} className="flex gap-2 text-[16px] leading-relaxed text-foreground">
                   <CheckCircle2 className="mt-[3px] h-4 w-4 shrink-0 text-gold" />
                   <span>{d}</span>
                 </li>
@@ -370,11 +482,11 @@ function LessonView({
         )}
 
         {/* Cách nộp + hạn nộp */}
-        <div className="mt-4 grid gap-2 rounded-xl border border-border/60 bg-background/40 p-3 text-[13px] sm:grid-cols-2">
+        <div className="mt-4 grid gap-2 rounded-xl border border-border/60 bg-background/40 p-3 text-[14px] sm:grid-cols-2">
           <div className="flex items-start gap-2">
             <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
             <span className="text-muted-foreground">
-              Làm trên <b className="text-foreground/80">Google Docs</b>, mở quyền “Bất kỳ ai có
+              Làm trên <b className="text-foreground">Google Docs</b>, mở quyền “Bất kỳ ai có
               đường liên kết”, rồi dán link vào tab Nộp bài tập.
             </span>
           </div>
@@ -406,6 +518,7 @@ function LessonView({
           </Button>
         </div>
       </section>
+      )}
     </div>
   );
 }

@@ -105,11 +105,22 @@ export const Route = createRootRoute({
   notFoundComponent: NotFoundComponent,
 });
 
+/**
+ * Đặt giao diện sáng/tối TRƯỚC khi trang được vẽ, nếu không sẽ thấy
+ * nền tối loé lên một nhịp rồi mới chuyển sang sáng.
+ */
+const DAT_GIAO_DIEN = `(function(){try{
+var g=localStorage.getItem('kol-giao-dien');
+if(g!=='light'&&g!=='dark'){g=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}
+document.documentElement.setAttribute('data-theme',g);
+}catch(e){}})();`;
+
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: DAT_GIAO_DIEN }} />
       </head>
       <body>
         {children}

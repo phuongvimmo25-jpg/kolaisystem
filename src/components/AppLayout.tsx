@@ -1,6 +1,15 @@
 import { useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, GraduationCap, FileText, Trophy, LogOut, ShieldCheck, Pencil } from "lucide-react";
+import {
+  Home,
+  GraduationCap,
+  FileText,
+  Trophy,
+  Sparkles,
+  LogOut,
+  ShieldCheck,
+  Pencil,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +35,9 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { CountdownBar } from "@/components/CountdownBar";
+import { SiteFooter } from "@/components/SiteFooter";
+import { NutZalo } from "@/components/NutZalo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import logo from "@/assets/logo.png";
 
 const NAV = [
@@ -33,6 +45,7 @@ const NAV = [
   { to: "/bai-giang", label: "Bài giảng", icon: GraduationCap },
   { to: "/bai-tap", label: "Nộp bài", icon: FileText },
   { to: "/vinh-danh", label: "Vinh danh", icon: Trophy },
+  { to: "/co-gi-moi", label: "Có gì mới", icon: Sparkles },
 ] as const;
 
 function RenameDialog({
@@ -84,7 +97,7 @@ function RenameDialog({
           </DialogDescription>
         </DialogHeader>
         <div>
-          <Label htmlFor="display-name" className="text-xs">
+          <Label htmlFor="display-name" className="text-[13px]">
             Tên hiển thị
           </Label>
           <Input
@@ -123,7 +136,7 @@ function AvatarMenu({ onRename }: { onRename: () => void }) {
         <button className="shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary">
           <Avatar className="h-8 w-8 ring-2 ring-primary/30 transition hover:ring-primary/60">
             <AvatarImage src={profile?.avatar_url ?? undefined} className="object-cover" />
-            <AvatarFallback className="bg-primary/20 text-[10px] font-bold text-primary">
+            <AvatarFallback className="bg-primary/20 text-[12px] font-bold text-primary">
               {profile?.display_name?.slice(0, 2).toUpperCase() ?? "KO"}
             </AvatarFallback>
           </Avatar>
@@ -133,10 +146,10 @@ function AvatarMenu({ onRename }: { onRename: () => void }) {
       <DropdownMenuContent align="end" className="w-60">
         <DropdownMenuLabel className="font-normal">
           <div className="truncate text-sm font-bold">{profile?.display_name ?? "..."}</div>
-          <div className="truncate text-xs text-muted-foreground">{user?.email}</div>
+          <div className="truncate text-[13px] text-muted-foreground">{user?.email}</div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <div className="flex items-center justify-between px-2 py-1.5 text-xs">
+        <div className="flex items-center justify-between px-2 py-1.5 text-[13px]">
           <span className="inline-flex items-center gap-1.5 text-muted-foreground">
             <ShieldCheck className="h-3.5 w-3.5 text-gold" />
             {profile?.submission_count ?? 0} khiên
@@ -181,7 +194,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               height={28}
               className="shrink-0 drop-shadow-[0_0_10px_oklch(0.78_0.16_75/0.5)]"
             />
-            <span className="truncate text-[15px] font-black leading-none tracking-tight text-foreground">
+            <span className="truncate text-[16px] font-black leading-none tracking-tight text-foreground">
               {NAV.find((n) => isActive(n.to))?.label ?? "Trang chủ"}
             </span>
           </Link>
@@ -193,7 +206,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold transition-all duration-200 ${
+                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[14px] font-semibold transition-all duration-200 ${
                     isActive(item.to)
                       ? "bg-gradient-gold text-gold-foreground shadow-[0_2px_14px_-2px_oklch(0.78_0.16_75/0.8)] ring-1 ring-gold/50"
                       : "text-muted-foreground hover:bg-gold/10 hover:text-gold"
@@ -208,23 +221,28 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
           <div className="ml-auto flex min-w-0 items-center gap-2 md:gap-3">
             <CountdownBar />
+            <ThemeToggle />
             <AvatarMenu onRename={() => setRenameOpen(true)} />
           </div>
         </div>
       </header>
 
-      <main className="flex-1 pb-20 md:pb-8">
+      <main className="flex-1">
         <div className="mx-auto max-w-[1400px] px-4 py-5 md:px-6 md:py-6">{children}</div>
+        {/* Chân trang tràn hết chiều ngang, nằm ngoài khung nội dung */}
+        <SiteFooter />
+        {/* Chừa chỗ cho thanh điều hướng dưới trên điện thoại */}
+        <div className="h-20 md:h-0" aria-hidden />
       </main>
 
       {/* Thanh dưới cho điện thoại */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-sidebar/95 backdrop-blur-xl md:hidden">
-        <div className="grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
+        <div className="grid grid-cols-5 pb-[env(safe-area-inset-bottom)]">
           {NAV.map((item) => (
             <Link
               key={item.to}
               to={item.to}
-              className={`relative flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-semibold transition ${
+              className={`relative flex flex-col items-center justify-center gap-1 py-3 text-[12px] font-semibold transition ${
                 isActive(item.to) ? "text-gold" : "text-muted-foreground"
               }`}
             >
@@ -239,6 +257,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
           ))}
         </div>
       </nav>
+
+      <NutZalo />
 
       <RenameDialog open={renameOpen} onOpenChange={setRenameOpen} />
     </div>

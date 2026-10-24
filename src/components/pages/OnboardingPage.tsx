@@ -63,14 +63,14 @@ export function OnboardingPage() {
           <h1 className="mt-3 text-[21px] font-black">
             Chào <span className="text-gradient-gold">{profile?.display_name ?? "bạn"}</span>
           </h1>
-          <p className="mx-auto mt-2 max-w-[17rem] text-[14px] leading-relaxed text-muted-foreground">
+          <p className="mx-auto mt-2 max-w-[17rem] text-[15px] leading-relaxed text-muted-foreground">
             Xác nhận tên Zalo của bạn rồi vào học nhé.
           </p>
         </div>
 
         <div className="mt-5 space-y-4">
           <div>
-            <Label htmlFor="zalo-name" className="text-[13px] font-medium">
+            <Label htmlFor="zalo-name" className="text-[14px] font-medium">
               Tên Zalo của bạn
             </Label>
             <Input
@@ -85,7 +85,7 @@ export function OnboardingPage() {
               maxLength={60}
               className="mt-1.5 bg-background/60"
             />
-            <p className="mt-1.5 text-xs text-muted-foreground">
+            <p className="mt-1.5 text-[13px] text-muted-foreground">
               Khác tên Zalo thì sửa lại, còn đúng rồi thì bấm Tiếp tục.
             </p>
           </div>

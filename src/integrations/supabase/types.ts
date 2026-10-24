@@ -99,6 +99,7 @@ export type Database = {
           current_milestone: number
           day_number: number
           display_name: string
+          grade_sum: number
           id: string
           last_active_date: string | null
           start_date: string
@@ -117,6 +118,7 @@ export type Database = {
           current_milestone?: number
           day_number?: number
           display_name?: string
+          grade_sum?: number
           id: string
           last_active_date?: string | null
           start_date?: string
@@ -135,6 +137,7 @@ export type Database = {
           current_milestone?: number
           day_number?: number
           display_name?: string
+          grade_sum?: number
           id?: string
           last_active_date?: string | null
           start_date?: string

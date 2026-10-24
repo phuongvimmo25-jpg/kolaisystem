@@ -10,6 +10,7 @@ export interface Profile {
   day_number: number;
   streak: number;
   total_points: number;
+  grade_sum: number;
   submission_count: number;
   watched_count: number;
   zalo_name: string | null;

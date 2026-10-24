@@ -69,7 +69,7 @@ export function LoginPage() {
           <div className="absolute inset-x-0 bottom-0 p-6 lg:p-10">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/60 backdrop-blur-md border border-primary/30 mb-4">
               <span className="h-2 w-2 rounded-full bg-orange-400 animate-pulse" />
-              <span className="text-xs font-semibold tracking-widest text-orange-300 uppercase"></span>
+              <span className="text-[13px] font-semibold tracking-widest text-orange-700 dark:text-orange-300 uppercase"></span>
             </div>
             <h2 className="text-3xl lg:text-5xl font-black leading-tight">
               <span className="bg-gradient-to-r from-orange-300 via-amber-200 to-yellow-300 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(251,146,60,0.5)]">
@@ -78,7 +78,7 @@ export function LoginPage() {
               <br />
               <span className="text-foreground"></span>
             </h2>
-            <p className="mt-3 text-sm lg:text-base text-foreground/80 max-w-md">
+            <p className="mt-3 text-sm lg:text-base text-foreground max-w-md">
               
             </p>
           </div>
@@ -95,7 +95,7 @@ export function LoginPage() {
               <span className="text-foreground">KOL AI </span>
               <span className="text-gradient-primary">SYSTEM</span>
             </h1>
-            <p className="text-xs md:text-sm font-medium text-foreground/80">Hệ thống huấn luyện cấp tốc của những chiến thần</p>
+            <p className="text-[13px] md:text-sm font-medium text-foreground">Hệ thống huấn luyện cấp tốc của những chiến thần</p>
           </div>
 
           <Button
@@ -112,13 +112,13 @@ export function LoginPage() {
             {loading ? "Đang chuyển hướng..." : "Đăng nhập bằng Google"}
           </Button>
 
-          <p className="text-center mt-5 text-xs text-muted-foreground leading-relaxed">
+          <p className="text-center mt-5 text-[13px] text-muted-foreground leading-relaxed">
             Chỉ cần tài khoản Google — không cần mật khẩu, không cần đăng ký.
             <br />
             Lần đầu đăng nhập, hệ thống tự tạo hồ sơ cho bạn.
           </p>
 
-          <p className="text-center mt-6 text-[11px] text-muted-foreground/80 leading-relaxed">
+          <p className="text-center mt-6 text-[12px] text-muted-foreground leading-relaxed">
             Khi đăng nhập, bạn đồng ý với{" "}
             <Link to="/terms" className="text-primary/90 hover:text-primary hover:underline">
               Điều khoản sử dụng

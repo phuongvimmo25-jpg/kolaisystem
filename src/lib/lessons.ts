@@ -115,7 +115,236 @@ export const DAYS: Day[] = [
       "Làm quen được toàn bộ giao diện từ web tới app và có thể thao tác như một chuyên gia",
     ],
   },
+  {
+    key: "ngay-2",
+    day: 2,
+    title: "Ngày 2 — Từ Skill đến App bằng AI",
+    subtitle:
+      "Đóng gói một việc lặp đi lặp lại thành Skill, rồi biến Skill đó thành app và trang bán hàng.",
+    lessons: [
+      {
+        key: "p2-b1",
+        code: "2.1",
+        title: "Khái niệm Skill và demo ảnh thương hiệu đầu tiên",
+        description:
+          "Skill là đóng gói một việc lặp lại để AI tự nhớ, không phải hỏi lại từ đầu. Khác khoá học ở chỗ nó là quy trình sống, không lỗi thời. Kèm công thức câu lệnh tạo ảnh theo phong cách tham chiếu.",
+        youtubeId: "Rp-OETn-4RQ",
+      },
+      {
+        key: "p2-b2",
+        code: "2.2",
+        title: "Đóng gói Skill ảnh thương hiệu — demo chi tiết",
+        description:
+          "Một Skill hoàn chỉnh gồm câu lệnh, màu thương hiệu, gương mặt và quy trình. Không cần công thức cứng — mô tả đúng ý rồi đóng gói lại, áp dụng được cho mọi lĩnh vực.",
+        youtubeId: "PF4eF-ZwLYA",
+      },
+      {
+        key: "p2-b3",
+        code: "2.3",
+        title: "ChatGPT vs Claude Code — từ Skill lên App",
+        description:
+          "So sánh ChatGPT và Claude Code khi làm Skill. Đóng gói một Skill thành app dùng trên điện thoại và máy tính, rồi chuyển giao cho người khác dùng để làm affiliate.",
+        youtubeId: "_gwAqwIHaCI",
+      },
+      {
+        key: "p2-b4",
+        code: "2.4",
+        title: "Deploy app, tạo trang bán hàng bằng AI",
+        description:
+          "Lưu Skill và app lên GitHub, Vercel để bán hoặc thu phí định kỳ. AI tự dựng một trang bán hàng chỉ từ một ảnh mẫu. Tổng kết trọn chuỗi: câu lệnh mẫu, mô tả thương hiệu, quy trình, build app.",
+        youtubeId: "XlJit2a93TI",
+      },
+    ],
+    assignment:
+      "Đóng gói một việc bạn hay làm thành Skill, dùng Skill đó tạo ra sản phẩm thật và đưa lên nơi công khai.",
+    deliverables: [
+      "Chọn một việc bạn hay làm đi làm lại, đóng gói thành một Skill gồm câu lệnh và phong cách",
+      "Dùng chính Skill đó tạo ra một sản phẩm hoàn chỉnh: một tấm ảnh hoặc một trang bán hàng",
+      "Đưa sản phẩm lên một nơi công khai để dùng thật — deploy, đăng bài, hoặc gửi cho một người khác dùng thử",
+    ],
+  },
+  {
+    key: "ngay-3",
+    day: 3,
+    title: "Ngày 3 — Tự động hoá kênh bằng AI Agent",
+    subtitle:
+      "Xây kênh để bán hàng, rồi đóng gói phong cách kênh thành Skill để AI tự đăng bài đa nền tảng.",
+    lessons: [
+      {
+        key: "p3-b1",
+        code: "3.1",
+        title: "Chiến lược Content Queen — xây kênh để bán hàng",
+        description:
+          "Xây kênh và bán hàng là hai việc khác nhau, cần hai tư duy khác nhau. Bản đồ Content Queen – Sản Phẩm Queen – Nền Tảng Queen, phễu ba tầng thu hút · uy tín · chuyển đổi, kèm hai case thật: Fan Đông Gia và anh Hữu Hoàng.",
+        youtubeId: "ALlkuycPAeY",
+      },
+      {
+        key: "p3-b2",
+        code: "3.2",
+        title: "Đóng gói Skill AI — tự động đăng bài đa nền tảng",
+        description:
+          "Đóng gói phong cách kênh thành một Skill dùng lại nhiều lần. Kết nối Facebook và TikTok để AI tự đăng bài, tự trả lời bình luận. Demo cắm kênh đối thủ vào AI, tạo sẵn 15 bài và lên lịch 15 ngày.",
+        youtubeId: "yLgiJE2uhpg",
+      },
+    ],
+    assignment:
+      "Xác định vị trí của bạn trên bản đồ content, đóng gói phong cách kênh thành Skill AI và cho AI tự đăng bài.",
+    deliverables: [
+      "Xác định bạn đang ở nhóm nào: chưa có sản phẩm, hay có sản phẩm nhưng bí content",
+      "Chọn một kênh mẫu đã viral đúng ngách của bạn và ghi ra công thức nội dung của họ",
+      "Viết ra Content Queen – Sản Phẩm Queen – Nền Tảng Queen của riêng bạn",
+      "Đóng gói phong cách kênh của bạn thành một Skill: ảnh đại diện, kênh mẫu, tông giọng",
+      "Kết nối một nền tảng (Facebook hoặc TikTok) và thử cho AI đăng tự động một bài",
+      "Cắm một kênh đối thủ vào AI, yêu cầu tạo sẵn 5 bài đăng theo đúng phong cách của họ",
+    ],
+  },
+  {
+    key: "ngay-4",
+    day: 4,
+    title: "Ngày 4 — Nhân bản kênh và video bằng AI",
+    subtitle:
+      "Từ bài viết chuyển sang video: giọng AI, ghép mặt, nhân bản kênh và lộ trình 1000 đô đầu tiên.",
+    lessons: [
+      {
+        key: "p4-b1",
+        code: "4.1",
+        title: "Từ bài viết sang video — cắm kênh và tư duy nhân bản",
+        description:
+          "Demo giọng AI Adam. Phân biệt “cắm kênh” là học phong cách với “cắm video” là học một video mẫu. Ba câu hỏi phải đặt ra trước khi tự động hoá quy mô lớn, kèm case thật: chọn kênh 100k follow có sẵn thay vì xây từ con số không.",
+        youtubeId: "v8-q-m4ZvoA",
+      },
+      {
+        key: "p4-b2",
+        code: "4.2",
+        title: "AI ghép mặt làm video bán hàng — lộ trình 1000 đô đầu tiên",
+        description:
+          "Demo AI ghép mặt tạo video review bán hàng, không cần biết Photoshop, kèm cảnh báo đạo đức về việc dùng hình ảnh và giọng nói của người khác. Cắt một video Zoom dài thành 30 video ngắn bằng app KOLAI Global. Lộ trình từ 0 đồng tới 1000 đô đầu tiên.",
+        youtubeId: "ScT2odH5YlQ",
+      },
+    ],
+    assignment:
+      "Chọn kênh để học theo, làm thử video bằng AI cho sản phẩm của bạn và viết lộ trình 1000 đô đầu tiên.",
+    deliverables: [
+      "Chọn một kênh 10k–100k follow đúng ngách, phân tích xem có thể “cắm” để học theo được không",
+      "Tạo thử một video ngắn bằng AI (ghép mặt hoặc giọng nói) cho đúng sản phẩm bạn đang bán",
+      "Viết ra lộ trình 0 đồng đến 1000 đô đầu tiên của riêng bạn: ngách gì, sản phẩm gì, nguồn lực gì",
+      "Tạo một video viral có dùng giọng Adam và đăng lên kênh của bạn",
+    ],
+  },
+  {
+    key: "ngay-5",
+    day: 5,
+    title: "Ngày 5 — Chuyển giao Skill và trang bán hàng",
+    subtitle:
+      "Buổi tổng kết: nhận trọn bộ trang bán hàng cùng hai Skill, dựng thương hiệu riêng và bán những đồng đầu tiên.",
+    lessons: [
+      {
+        key: "p5-b1",
+        code: "5.1",
+        title: "Tổng kết — chuyển giao Skill và trang bán hàng",
+        description:
+          "Ba chủ đề của buổi: thương mại, chuyển giao, rồi mời cùng phát triển cộng đồng. Chiến lược giá bậc thang, phân biệt đại sứ với đại diện, so sánh ChatGPT · Claude Code · Gemini. Demo dựng video và trang bán hàng chỉ từ một link web, rồi chuyển giao mã nguồn trang bán hàng cùng hai Skill.",
+        youtubeId: "Vp_f1XALBn8",
+      },
+    ],
+    assignment:
+      "Nhận bộ chuyển giao, dựng thành trang bán hàng của riêng bạn và bán những đồng doanh thu đầu tiên.",
+    deliverables: [
+      "Clone trang bán hàng về máy bằng Claude Code hoặc Codex, đổi tên, màu sắc và nội dung cho đúng thương hiệu của bạn",
+      "Cài hai Skill được tặng — tạo video và xây thương hiệu trang web — rồi dùng thử để làm ra ít nhất một sản phẩm hoàn chỉnh",
+      "Bán thử để đạt doanh thu 500K đến 1,5 triệu trong 7 ngày, gửi bill xác nhận để được cấp giấy phép thương mại đầy đủ",
+      "Giữ kín bộ tài sản này, không chia sẻ rộng ra ngoài lớp",
+    ],
+  },
 ];
+
+/**
+ * Lời chúc mừng khi học xong một bài, viết bám đúng chủ đề của ngày hôm đó.
+ * Mỗi lần hiện một câu lấy ngẫu nhiên để không nhàm.
+ */
+const LOI_CHUC: Record<string, string[]> = {
+  "ngay-1": [
+    "Xong một bài. Bạn vừa thêm một công cụ vào tay nghề của mình.",
+    "Hiểu được Skill là hiểu cách bảo AI làm việc thay mình. Đi tiếp nào.",
+    "Nền móng chắc thì xây gì lên cũng vững. Bạn đang làm đúng thứ tự.",
+    "Người khác còn đang hỏi AI từng câu, bạn thì đang học cách đóng gói nó.",
+  ],
+  "ngay-2": [
+    "Một việc lặp đi lặp lại vừa biến thành thứ chạy được nhiều lần. Ngon.",
+    "Từ câu lệnh tới sản phẩm — bạn vừa đi hết một quãng mà nhiều người bỏ dở.",
+    "Skill đóng gói xong là tài sản của bạn, không phải kiến thức đi mượn.",
+    "Cái bạn vừa học không cũ đi theo thời gian, vì nó là quy trình chứ không phải mẹo.",
+  ],
+  "ngay-3": [
+    "Xây kênh và bán hàng là hai việc khác nhau. Giờ bạn phân biệt được rồi.",
+    "Nội dung tự chạy, bạn rảnh tay lo phần quan trọng hơn: bán được hàng.",
+    "Một kênh mẫu tốt đáng giá hơn mười ý tưởng trong đầu. Bạn vừa có công thức.",
+    "Bạn đang chuyển từ làm content bằng tay sang vận hành một hệ thống.",
+  ],
+  "ngay-4": [
+    "Từ chữ sang hình, từ hình sang video — bạn vừa lên một bậc.",
+    "Nhân bản được thì quy mô không còn phụ thuộc vào số giờ bạn ngồi làm.",
+    "Công cụ mạnh đi kèm trách nhiệm. Dùng đúng thì đường dài mới bền.",
+    "Nghìn đô đầu tiên bắt đầu từ một ngách rõ ràng. Bạn vừa vẽ xong bản đồ.",
+  ],
+  "ngay-5": [
+    "Bài cuối rồi. Thứ bạn vừa nhận không phải kiến thức, mà là gia sản để làm ăn.",
+    "Học xong là một chuyện, bán được đồng đầu tiên mới là chuyện khác. Bắt tay vào đi.",
+    "Cả chặng đường tới đây bạn đều tự đi. Phần còn lại cũng vậy thôi.",
+    "Trang bán hàng, hai Skill, và một cái nghề. Giờ tới lượt bạn dùng nó.",
+  ],
+};
+
+/** Một câu chúc ngẫu nhiên hợp với ngày đang học. */
+export function loiChucNgauNhien(dayKey: string): string {
+  const ds = LOI_CHUC[dayKey] ?? ["Xong một bài. Đi tiếp thôi."];
+  return ds[Math.floor(Math.random() * ds.length)];
+}
+
+/** Một bước trong sơ đồ tóm tắt của ngày. */
+export interface BuocSoDo {
+  /** Tên biểu tượng lucide, ánh xạ trong SoDoBaiHoc */
+  icon: string;
+  tieuDe: string;
+  mota: string;
+}
+
+/**
+ * Sơ đồ tóm tắt cuối mỗi ngày — nhìn là biết ngay phải làm gì để nộp bài.
+ * Cố ý viết cực ngắn: mỗi bước vài chữ, không chép lại đề bài.
+ */
+export const SO_DO: Record<string, BuocSoDo[]> = {
+  "ngay-1": [
+    { icon: "brain", tieuDe: "Hiểu Skill", mota: "Skill · MCP · Sub-Agent" },
+    { icon: "download", tieuDe: "Cài Codex", mota: "Tải về máy, đăng nhập" },
+    { icon: "mouse-pointer", tieuDe: "Thạo giao diện", mota: "Thao tác web và app" },
+    { icon: "file-text", tieuDe: "Nộp bài", mota: "Một link Google Docs" },
+  ],
+  "ngay-2": [
+    { icon: "repeat", tieuDe: "Chọn việc lặp lại", mota: "Việc bạn làm hoài" },
+    { icon: "package", tieuDe: "Đóng gói Skill", mota: "Câu lệnh + phong cách" },
+    { icon: "layout", tieuDe: "Dựng thành App", mota: "Dùng trên máy, trên điện thoại" },
+    { icon: "globe", tieuDe: "Đưa ra công khai", mota: "Deploy hoặc gửi người dùng thử" },
+  ],
+  "ngay-3": [
+    { icon: "map", tieuDe: "Định vị bản thân", mota: "Có sản phẩm hay chưa" },
+    { icon: "search", tieuDe: "Rút công thức", mota: "Từ một kênh đã viral" },
+    { icon: "package", tieuDe: "Đóng gói kênh", mota: "Ảnh, kênh mẫu, tông giọng" },
+    { icon: "send", tieuDe: "Cho AI đăng", mota: "Nối Facebook hoặc TikTok" },
+  ],
+  "ngay-4": [
+    { icon: "search", tieuDe: "Chọn kênh mẫu", mota: "Loại 10k đến 100k follow" },
+    { icon: "video", tieuDe: "Làm video AI", mota: "Ghép mặt hoặc giọng nói" },
+    { icon: "map", tieuDe: "Vẽ lộ trình", mota: "0 đồng tới 1000 đô" },
+    { icon: "send", tieuDe: "Đăng lên kênh", mota: "Một video dùng giọng Adam" },
+  ],
+  "ngay-5": [
+    { icon: "download", tieuDe: "Clone trang bán", mota: "Đổi tên, màu, nội dung" },
+    { icon: "package", tieuDe: "Cài hai Skill", mota: "Tạo video · thương hiệu web" },
+    { icon: "sparkles", tieuDe: "Làm sản phẩm", mota: "Ít nhất một cái hoàn chỉnh" },
+    { icon: "trending-up", tieuDe: "Bán và gửi bill", mota: "500K đến 1,5 triệu / 7 ngày" },
+  ],
+};
 
 /** Tất cả video của mọi ngày, gộp phẳng. */
 export const ALL_LESSONS: Lesson[] = DAYS.flatMap((d) => d.lessons);
@@ -145,6 +374,14 @@ export const POINTS_PER_VIDEO = 5;
  * Định dạng YYYY-MM-DD, theo giờ Việt Nam. ĐỔI KHI MỞ LỚP MỚI.
  */
 export const COURSE_START_DATE = "2026-08-30";
+
+/**
+ * MỞ TOÀN BỘ KHOÁ HỌC.
+ * Bật lên thì bỏ hết mọi rào: không cần chờ tới ngày, không cần nộp bài
+ * ngày trước, không cần xem hết video mới được nộp.
+ * Muốn khoá lại theo trình tự cũ thì đổi thành false.
+ */
+export const MO_TOAN_BO = true;
 
 /** Nhãn hiển thị: "Ngày 1", "Ngày 2"... */
 export function dayLabel(day: number): string {
@@ -194,6 +431,8 @@ export function dayLockState(
   submittedKeys: Set<string>,
   now: Date = new Date(),
 ): LockReason {
+  if (MO_TOAN_BO) return { locked: false };
+
   if (!isDayOpen(day, now)) {
     return { locked: true, kind: "date", openDate: formatOpenDate(day) };
   }
@@ -216,6 +455,8 @@ export function submitLockState(
   watchedKeys: Set<string>,
   now: Date = new Date(),
 ): LockReason {
+  if (MO_TOAN_BO) return { locked: false };
+
   const base = dayLockState(day.day, submittedKeys, now);
   if (base.locked) return base;
 

@@ -5,8 +5,9 @@ import {
   GRADING_MODEL,
   GRADING_SYSTEM_PROMPT,
   BANNED_WORDS,
+  MIN_SCORE,
   buildAssignmentBrief,
-  extractGoogleDocId,
+  googleExportPdfUrl,
   type GradeResult,
   type GradeOutcome,
 } from "@/lib/grading";
@@ -15,12 +16,14 @@ const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models
 
 /** Tải bản PDF của Google Docs — giữ được cả ảnh chụp màn hình trong bài. */
 async function fetchDocAsPdf(docUrl: string): Promise<string> {
-  const id = extractGoogleDocId(docUrl);
-  if (!id) throw new Error("Link không phải Google Docs hợp lệ.");
+  const exportUrl = googleExportPdfUrl(docUrl);
+  if (!exportUrl) {
+    throw new Error(
+      "Link chưa phải tài liệu Google. Hãy dán link Google Docs, Trang tính hoặc Trang trình bày.",
+    );
+  }
 
-  const res = await fetch(`https://docs.google.com/document/d/${id}/export?format=pdf`, {
-    redirect: "follow",
-  });
+  const res = await fetch(exportUrl, { redirect: "follow" });
 
   if (!res.ok) {
     throw new Error(
@@ -159,7 +162,8 @@ export const gradeSubmission = createServerFn({ method: "POST" })
         );
       }
 
-      const score = Math.max(0, Math.min(10, Math.round(result.diem * 10) / 10));
+      // Chốt sàn ngay tại đây, phòng khi AI chấm lệch xuống dưới mức cho phép
+    const score = Math.max(MIN_SCORE, Math.min(10, Math.round(result.diem * 10) / 10));
 
       await supabase
         .from("submissions")
